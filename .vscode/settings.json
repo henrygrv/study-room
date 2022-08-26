@@ -1,0 +1,11 @@
+{
+    "workbench.colorTheme": "Gruvbox Dark Soft",
+    "docwriter.style": "JSDoc",
+    "docwriter.progress.trackTypes": true,
+    "docwriter.progress.trackFunctions": true,
+    "docwriter.progress.trackClasses": true,
+    "cSpell.words": [
+        "nextauth",
+        "superjson"
+    ]
+}
