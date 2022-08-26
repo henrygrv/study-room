@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
 			clientSecret: env.DISCORD_CLIENT_SECRET,
 		}),
 		EmailProvider({
-			server: process.env.
+			server: process.env.EMAIL_SERVER,
 		})
 	
 	],

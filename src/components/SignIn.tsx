@@ -8,7 +8,8 @@ const SignInComponent = () =>
 	{
 		return (
 			<>
-				Signed in as {session.user.email} <br />
+				Signed in as {session?.user?.email} <br />
+				{/* eslint-disable @typescript-eslint/no-misused-promises */}
 				<button onClick={() => signOut()}>Sign Out</button>
 			</>
 		)
