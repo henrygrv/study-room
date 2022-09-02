@@ -1,16 +1,18 @@
-import type { NextPage, NextApiRequest, NextApiResponse } from "next";
+import type { NextPage, NextApiRequest, NextApiResponse, InferGetServerSidePropsType } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import AuthButton from "../components/derived/auth-button";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+
 
 import { trpc } from "../utils/trpc";
 import { useRouter } from "next/router";
-import { unstable_getServerSession } from "next-auth";
+import { unstable_getServerSession as getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]";
 import { prisma } from "./../server/db/client"
+import { useEffect, useRef } from "react";
+import autoAnimate from "@formkit/auto-animate";
 
-const Home: NextPage = () => 
+const Home: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
 {
 	const utils = trpc.useContext();
 	const postsQuery = trpc.useQuery(["posts.all"])
@@ -30,8 +32,13 @@ const Home: NextPage = () =>
 		}
 	});
 
-	// Auto Animation Hook
-	const [parent] = useAutoAnimate()
+	// Auto Animation ref
+	const parent = useRef<HTMLDivElement>(null)
+
+	useEffect(() => 
+	{
+		parent.current && autoAnimate(parent.current)
+	}, [parent])
 
 	return (
 		<>
@@ -177,7 +184,7 @@ export default Home;
 
 export async function getServerSideProps(context: { req: NextApiRequest; res:  NextApiResponse; resolvedUrl: string })
 {
-	const session = await unstable_getServerSession(
+	const session = await getServerSession(
 		context.req,
 		context.res,
 		authOptions
