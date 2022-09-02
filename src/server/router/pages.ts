@@ -37,28 +37,28 @@ export const pageRouter = createRouter()
 		}
 	})
 
-	.query(
-		"currentUser", 
-		{
+// .query(
+// 	"currentUser", 
+// 	{
 
-			async resolve ( input )
-			{
-				const { ctx } = input;
+// 		async resolve ( input )
+// 		{
+// 			const { ctx } = input;
 				
-				if (!ctx.session?.user)
-				{
-					return
-				}
+// 			if (!ctx.session?.user)
+// 			{
+// 				return
+// 			}
 
-				// if (!page)
-				// {
-				// 	throw new TRPCError({
-				// 		code: "NOT_FOUND",
-				// 		"message": `No page with id`,
-				// 	})
-				// }
-			}
-		})
+// 			// if (!page)
+// 			// {
+// 			// 	throw new TRPCError({
+// 			// 		code: "NOT_FOUND",
+// 			// 		"message": `No page with id`,
+// 			// 	})
+// 			// }
+// 		}
+// 	})
 
 	.query(
 		"byId",
