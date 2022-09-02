@@ -9,7 +9,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    "plugin:react-hooks/recommended",
+    'next'
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -19,7 +19,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: ['./tsconfig.json'],
   },
-  plugins: ["react", "@typescript-eslint"],
+  plugins: ["@typescript-eslint"],
   rules: {
     "brace-style": [2, "allman"],
     "object-curly-spacing": [2, "always"],

@@ -12,11 +12,10 @@ import { prisma } from "./../server/db/client"
 import { useEffect, useRef } from "react";
 import autoAnimate from "@formkit/auto-animate";
 
-const Home: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
+const Home: NextPage = () => 
 {
 	const utils = trpc.useContext();
 	const postsQuery = trpc.useQuery(["posts.all"])
-	const router = useRouter();
 
 	const addPost = trpc.useMutation("posts.add", {
 		async onSuccess()
