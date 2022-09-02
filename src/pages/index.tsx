@@ -205,11 +205,14 @@ export async function getServerSideProps(context: { req: NextApiRequest; res:  N
 		{
 			const user = await prisma.user.findUnique({
 				where: { id: userId }
-			})
-		
-			return {
-				redirect: {
-					destination: `/p/${user.pageId}`
+			});
+
+			if (user?.pageId)
+			{
+				return {
+					redirect: {
+						destination: `/p/${user.pageId}`
+					}
 				}
 			}
 		}
