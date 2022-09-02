@@ -1,4 +1,4 @@
-import type { NextPage, InferGetServerSidePropsType, NextApiRequest, NextApiResponse } from "next";
+import type { NextPage, NextApiRequest, NextApiResponse } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import AuthButton from "../components/derived/auth-button";
@@ -10,7 +10,7 @@ import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]";
 import { prisma } from "./../server/db/client"
 
-const Home: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
+const Home: NextPage = () => 
 {
 	const utils = trpc.useContext();
 	const postsQuery = trpc.useQuery(["posts.all"])
