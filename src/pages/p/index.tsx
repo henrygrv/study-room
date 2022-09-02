@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { NextApiRequest, NextApiResponse, NextPage } from "next";
+import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
 
-const BasePage: NextPage  = () => 
+const BasePage: NextPage  = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
 {
 
 	return(
@@ -43,9 +43,12 @@ export async function getServerSideProps(context: { req: (IncomingMessage & { co
 				where: { id: userId }
 			})
 		
-			return {
-				redirect: {
-					destination: `/p/${user.pageId}`
+			if (user)
+			{
+				return {
+					redirect: {
+						destination: `/p/${user.pageId}`
+					}
 				}
 			}
 		}
