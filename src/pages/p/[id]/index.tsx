@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { z } from "zod";
 import AuthButton from "../../../components/derived/auth-button";
 import { trpc } from "../../../utils/trpc";
 import { authOptions } from "../../api/auth/[...nextauth]";
@@ -126,7 +127,7 @@ export async function getServerSideProps(context: {res: ServerResponse | NextApi
 			const user = await prisma.user.findUnique({
 				where: { id: userId }
 			})
-			
+
 			if (user)
 			{
 				if (context.resolvedUrl !== `/p/${user.pageId}`) 
