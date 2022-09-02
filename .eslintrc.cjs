@@ -21,7 +21,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   rules: {
-    "brace-style": [2, "allman"],
+    "brace-style": [1, "allman"],
     "object-curly-spacing": [2, "always"],
     "indent": [2, "tab"],
     "@typescript-eslint/no-unsafe-assignment": 1,
