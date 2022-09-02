@@ -5,10 +5,11 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { z } from "zod";
 import AuthButton from "../../../components/derived/auth-button";
 import { trpc } from "../../../utils/trpc";
 import { authOptions } from "../../api/auth/[...nextauth]";
+
+import { prisma } from "../../../server/db/client";
 
 const UserPage: NextPage = () => 
 {
