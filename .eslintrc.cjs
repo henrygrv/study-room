@@ -26,6 +26,7 @@ module.exports = {
     "indent": [2, "tab"],
     "@typescript-eslint/no-unsafe-assignment": 1,
     "@typescript-eslint/no-unsafe-member-access": 1,
+    "@typescript-eslint/restrict-template-expressions": "warn"
   },
   root: true,
-};
+}

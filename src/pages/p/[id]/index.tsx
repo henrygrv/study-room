@@ -127,19 +127,22 @@ export async function getServerSideProps(context: {res: ServerResponse | NextApi
 				where: { id: userId }
 			})
 			
-			if (context.resolvedUrl !== `/p/${user.pageId}`) 
+			if (user)
 			{
-				return {
-					redirect: {
-						destination: `/p/${user.pageId}`
+				if (context.resolvedUrl !== `/p/${user.pageId}`) 
+				{
+					return {
+						redirect: {
+							destination: `/p/${user.pageId}`
+						}
 					}
 				}
-			}
-			else
-			{
-				return {
-					props: {
-
+				else
+				{
+					return {
+						props: {
+	
+						}
 					}
 				}
 			}
