@@ -1,4 +1,4 @@
-import type { NextPage, NextApiRequest, NextApiResponse, InferGetServerSidePropsType } from "next";
+import type { NextPage, NextApiRequest, NextApiResponse } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import AuthButton from "../components/derived/auth-button";

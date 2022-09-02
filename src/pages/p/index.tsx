@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType 
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
 
-const BasePage: NextPage  = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
+const BasePage: NextPage  = () => 
 {
 
 	return(
