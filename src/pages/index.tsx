@@ -1,16 +1,20 @@
-
-import type { NextPage } from "next";
+import type { NextPage, InferGetServerSidePropsType, NextApiRequest, NextApiResponse } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import SignInComponent from "../components/SignIn";
+import AuthButton from "../components/derived/auth-button";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { trpc } from "../utils/trpc";
+import { useRouter } from "next/router";
+import { unstable_getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]";
+import { prisma } from "./../server/db/client"
 
-
-const Home: NextPage = () => 
+const Home: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
 {
 	const utils = trpc.useContext();
 	const postsQuery = trpc.useQuery(["posts.all"])
+	const router = useRouter();
 
 	const addPost = trpc.useMutation("posts.add", {
 		async onSuccess()
@@ -26,6 +30,8 @@ const Home: NextPage = () =>
 		}
 	});
 
+	// Auto Animation Hook
+	const [parent] = useAutoAnimate()
 
 	return (
 		<>
@@ -34,37 +40,16 @@ const Home: NextPage = () =>
 				<meta name="description" content="Studying Application for students and professionals alike" />
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
+			<AuthButton />
+			
+			{/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
+			{/* <Button onClick={async (e) =
+			{
 
-			<SignInComponent />
+				e.preventDefault();
+
+			}}/>  */}
 			<div>
-				<h1>
-          Create <span>T3</span> App
-				</h1>
-
-				<div>
-					<h3>This stack uses:</h3>
-					<ul>
-						<li>
-							<a href="https://nextjs.org" target="_blank" rel="noreferrer">
-                Next.js
-							</a>
-						</li>
-						<li>
-							<a href="https://trpc.io" target="_blank" rel="noreferrer">
-                tRPC
-							</a>
-						</li>
-						<li>
-							<a
-								href="https://typescriptlang.org"
-								target="_blank"
-								rel="noreferrer"
-							>
-                TypeScript
-							</a>
-						</li>
-					</ul>
-				</div>
 				<div style={
 					{
 						display: "flex",
@@ -135,7 +120,6 @@ const Home: NextPage = () =>
 									id: $id.value,
 									data: { body: $text.value },
 								};
-								console.log(input)
 								try 
 								{
 									await editPost.mutateAsync(input);
@@ -153,7 +137,7 @@ const Home: NextPage = () =>
 							<input
 								id="idInput"
 								name="idInput"
-								type="idInput"
+								type="text"
 								disabled={editPost.isLoading}
 							/>
 
@@ -169,13 +153,13 @@ const Home: NextPage = () =>
 						</form>
 					</div>
 				</div>
-
-				<div>
+				
+				<div ref={parent}>
 					{postsQuery.data?.map(item => (
 						<article key={item.id}>
 							<h2>{item.title}</h2>
 							<p>{item.body}</p>
-							<Link href={`/p/${item.id}`}> 
+							<Link href={`/post/${item.id}`}> 
 									View Details
 							</Link>
 							{ /* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
@@ -190,3 +174,38 @@ const Home: NextPage = () =>
 };
 
 export default Home;
+
+export async function getServerSideProps(context: { req: NextApiRequest; res:  NextApiResponse; resolvedUrl: string })
+{
+	const session = await unstable_getServerSession(
+		context.req,
+		context.res,
+		authOptions
+	)
+
+	if (!session) 
+	{
+		return {
+			redirect:{
+				destination: "/api/auth/signin"
+			}
+		}
+	}
+	else 
+	{
+		const userId = session?.user?.id
+
+		if (userId) 
+		{
+			const user = await prisma.user.findUnique({
+				where: { id: userId }
+			})
+		
+			return {
+				redirect: {
+					destination: `/p/${user.pageId}`
+				}
+			}
+		}
+	}
+}

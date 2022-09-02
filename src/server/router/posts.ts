@@ -3,6 +3,8 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
+import { prisma } from "./../db/client"
+
 const defaultPostSelector = Prisma.validator<Prisma.PostSelect>()({
 	id: true,
 	title: true,
@@ -23,10 +25,10 @@ export const postRouter = createRouter()
 			}),
 			
 			/* Creating a new post and returning it. */
-			async resolve({ input }) 
+			async resolve( input ) 
 			{
 				const post = await prisma.post.create({
-					data: input,
+					data:  input.input ,
 					select: defaultPostSelector,
 				});
 
@@ -58,8 +60,7 @@ export const postRouter = createRouter()
 				const { id } = input;
 			
 				const post = await prisma.post.findUnique({
-					where: { id },
-					select: defaultPostSelector,
+					where: { id: id }
 				});
 			
 				if (!post) 
