@@ -10,13 +10,17 @@ export const userRouter = createProtectedRouter()
 	.query(
 		"byId",
 		{
+			// define input shape
 			input: z.object({
 				id: z.string().optional(),
 			}),
-			async resolve({ input })
+			async resolve({ ctx, input })
 			{
-				const { id } = input;
-
+				let { id } = input;
+				if (!id) 
+				{
+					id = ctx.session.user.id;
+				}
 				const user = await prisma.user.findUnique({
 					where: { id }
 				});
@@ -25,9 +29,11 @@ export const userRouter = createProtectedRouter()
 
 			}
 		})
+		
 	.mutation(
 		"nick",
 		{
+			//define input shape
 			input: z.object({
 				id: z.string(),
 				nickname: z.string(),

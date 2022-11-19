@@ -1,0 +1,29 @@
+{
+	"schema": "study-room-page-schema",
+	"layout": 0,
+	"blocks": [
+		{
+			"block": {
+				"id": 0,
+				"type": "notes",
+				"content": "hello this is from the user data"
+			}
+		},
+		{
+			"block": {
+				"id": 1,
+				"type": "timer"
+			}
+		},
+		{
+			"block": {
+				"id": 2,
+				"type": "notes",
+				"content": "Notes"
+			}
+		}
+	],
+	"userPreferences": {
+
+	}
+}

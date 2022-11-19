@@ -13,14 +13,11 @@ export const pageRouter = createRouter()
 		
 		async resolve( { ctx })
 		{
-			console.log("hello")
 
 			if (!ctx.session?.user) 
 			{
 				return
 			}
-
-			console.log(  prisma.page.count())
 
 			const page = await prisma.page.create({
 				data: {
@@ -64,20 +61,52 @@ export const pageRouter = createRouter()
 		"byId",
 		{
 			input: z.object({
-				id: z.string().optional()
+				pid: z.string().optional()
 			}),
 
 			async resolve ({ input })
 			{
-				const { id } = input
+				const { pid } = input
 
 				const page = await prisma.page.findUnique({
 					where: {
-						id
+						id: pid	
 					}
 				})
 
 				return page;
+			}
+
+
+		}
+	)
+	.mutation(
+		"updateData",
+		{
+			input: z.object({
+				id: z.string(),
+				data: z.object({
+					layout: z.number(),
+					blocks: z.array(z.object({
+						block:z.object({
+							type: z.string(),
+							content: z.string()
+						})
+					}))
+				})
+			}),
+
+			async resolve({ input })
+			{
+				const { id, data } = input;
+
+				const updateData = await prisma.page.update({
+					where: { id },
+					data: {
+						pageData: { data }
+					}
+					
+				})
 			}
 
 

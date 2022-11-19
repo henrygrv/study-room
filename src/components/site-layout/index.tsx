@@ -9,10 +9,10 @@ interface SiteLayoutProps
 const SiteLayout: FC<SiteLayoutProps> = (props) => 
 {
 	return(
-		<>
+		<div className="w-full h-screen bg-gradient-to-tr from-lime-100 via-yellow-100 to-lime-100">
 			<Header />
 			{props.children}
-		</>
+		</div>
 	)
 }
 

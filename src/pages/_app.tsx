@@ -3,8 +3,9 @@ import { withTRPC } from "@trpc/next";
 import { SessionProvider } from "next-auth/react";
 import type { AppType } from "next/dist/shared/lib/utils";
 import superjson from "superjson";
-import SiteLayout from "../components/base/site-layout";
+import SiteLayout from "../components/site-layout";
 import type { AppRouter } from "../server/router";
+import "../styles/globals.css"
 
 const MyApp: AppType = ({
 	Component,

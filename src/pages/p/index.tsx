@@ -1,7 +1,9 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
-import { unstable_getServerSession } from "next-auth";
+import { NextApiRequest, NextApiResponse, NextPage } from "next";
+import { unstable_getServerSession as getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]";
+
+import { prisma } from "./../../server/db/client"
 
 const BasePage: NextPage  = () => 
 {
@@ -19,7 +21,7 @@ export default BasePage;
 
 export async function getServerSideProps(context: { req: (IncomingMessage & { cookies: Partial<{ [key: string]: string; }>; }) | NextApiRequest; res: ServerResponse | NextApiResponse; })
 {
-	const session = await unstable_getServerSession(
+	const session = await getServerSession(
 		context.req,
 		context.res,
 		authOptions

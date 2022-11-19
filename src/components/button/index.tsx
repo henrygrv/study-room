@@ -1,5 +1,5 @@
 import { FC, MouseEventHandler, ReactNode } from 'react'
-import { useHover } from '../../../hooks/useHover'
+import { useHover } from '../../hooks/useHover'
 
 /**
  * Interface for defining the props expected by the base button component

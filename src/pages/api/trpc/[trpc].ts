@@ -7,6 +7,8 @@ import { createContext } from "../../../server/router/context";
 export default createNextApiHandler({
 	router: appRouter,
 	createContext: createContext,
-	// NOTE: Error handler for site wide trpc requests
-	// onError({ error, type, path, input, ctx, req }) {}
+	onError({ error, type, path, input, ctx, req }) 
+	{
+		console.error("Error:", error)
+	}
 });

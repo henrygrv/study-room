@@ -1,4 +1,4 @@
-{
+  {
   "compilerOptions": {
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -22,7 +22,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.js",
-    "**/*.eslintrc.cjs",
+    "**/*.eslintrc.cjs", "tailwind.config.mjs",
   ],
   "exclude": ["node_modules"]
 }

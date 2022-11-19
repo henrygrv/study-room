@@ -5,8 +5,10 @@ export function useHover(
 	styleOnNotHover: CSSProperties = {},
 ) 
 {
+	// track current style
 	const [style, setStyle] = useState(styleOnNotHover);
 
+	// Define behavior for mouse on and mouse off events 
 	const onMouseEnter = () => setStyle(styleOnHover);
 	const onMouseLeave = () => setStyle(styleOnNotHover);
 

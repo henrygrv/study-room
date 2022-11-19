@@ -36,7 +36,6 @@ export const authOptions: NextAuthOptions = {
 					},
 				})
 			}
-
 		}
 	},
 	// Configure authentication providers
