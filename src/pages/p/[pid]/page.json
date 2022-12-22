@@ -5,23 +5,32 @@
 		{
 			"block": {
 				"id": 0,
-				"type": "notes",
-				"content": "hello this is from the user data"
+				"type": "Notes",
+				"content": "hello rom the user data"
 			}
 		},
 		{
 			"block": {
 				"id": 1,
-				"type": "timer"
+				"type": "Notes",
+				"content": "sjdfhksjdhf"
 			}
 		},
 		{
 			"block": {
 				"id": 2,
-				"type": "notes",
+				"type": "Notes",
 				"content": "Notes"
 			}
+		},
+		{
+			"block": {
+				"id": 3,
+				"type": "TodoList",
+				"content": ""
+			}
 		}
+
 	],
 	"userPreferences": {
 

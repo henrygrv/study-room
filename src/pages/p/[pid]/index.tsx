@@ -2,28 +2,75 @@ import { ServerResponse, IncomingMessage } from "http";
 import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
 import { unstable_getServerSession as getServerSession } from "next-auth";
 import Head from "next/head";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { authOptions } from "../../api/auth/[...nextauth]";
-import Clock from "../../../components/clock";
-import * as data from "./page.json";
+import * as  data from "./page.json";
 
-import { prisma } from "../../../server/db/client";
 import useGetUser from "../../../hooks/useGetUser";
 import RoomLayoutProvider from "../../../components/room-layout-provider";
 import { trpc } from "../../../utils/trpc";
-import { Context, createContext } from "react";
 import Link from "next/link";
+import { Prisma } from "@prisma/client";
+
+export interface UserData {
+	schema: string;
+	layout: number;
+	blocks: {
+		block:
+		{
+			id: number,
+			type: string, 
+			content?: string
+		}
+	}[],
+	
+}
 
 const UserPage: NextPage = () =>
 {
 	const pid = useRouter().query.pid as string;
+	const utils = trpc.useContext()
 	const { user, pageUrl } = useGetUser();
 
 	const pageQuery = trpc.useQuery(["pages.byId", { pid: pid }])
+	
+	const { data: pagePrefsData } = trpc.useQuery(
+		["pages.getData", { pid: pid }],
+		{
+			refetchInterval: 4000,
+			onSuccess: () => 
+			{
+				console.log("data")
+			}
+		}
+	
+	) 
+	const updatePageData = trpc.useMutation(
+		["pages.updateData"],
+		{
+			onSuccess: async() => 
+			{
+				console.log("updared")
+				await utils.invalidateQueries(["pages.getData"]);
+			},
+		}
+	);
 
-	// Mock call to get page data 
-	const json = data
+	const pdata = async () => 
+	{
+		console.log(data.blocks)
+		await updatePageData.mutateAsync({
+			pid: pid,
+			data: {
+				schema: data.schema,
+				layout: data.layout,
+				blocks: data.blocks,
+				userPreferences: data.userPreferences,
+			}
+		})
+	}
+
+	
 
 	if (!user)
 	{
@@ -63,33 +110,39 @@ const UserPage: NextPage = () =>
 	{
 		return pageNotFound;
 	}
-
 	const isUserAuthor = user?.pageId === pageData.id ? true : false
 
+	// console.log(pagePrefsData?.pageData)
+	const prefData = pagePrefsData
+	
+	if(!prefData) 
+	{
+		return
+	}
+
+	// console.log(prefData)
+	// const typesafePrefDataWrapper = {
+	// 	schema: prefData.schema as string,
+	// 	layout: prefData.layout as number,
+	// 	pageData: prefData.pageData
+	// }
 	return(
 		<>
 			<Head>
 				<title>{user.nickname ? `${user.nickname}'s room` : `${user.name}'s room`}</title>
 			</Head>
 			<div className=" w-full h-5/6 my-12">
-				<RoomLayoutProvider user={user} layout={json.layout} userData={json}/>
+				{/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
+				<button onClick={pdata}>
+					gesdfkjsh
+				</button>
+				{updatePageData.status}
+				<RoomLayoutProvider user={user} layout={prefData.layout} userData={prefData}/>
 			</div>
 		</>
 	)
 }
 
-export type UserData = {
-	schema: string;
-	layout: number,
-	blocks: {
-		block:
-		{
-			id: number,
-			type: string, 
-			content?: string
-		}
-	}[]
-}
 
 export default UserPage; 
 

@@ -1,6 +1,8 @@
 import {  Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, SelectorIcon } from "@heroicons/react/outline";
 import { Dispatch, FC, Fragment, SetStateAction, useState, KeyboardEvent } from "react";
+import { UserData } from "../../pages/p/[pid]";
+import { trpc } from "../../utils/trpc";
 import Notes from "../note-block";
 import Timer from "../timer";
 import TodoList from "../todo";
@@ -8,8 +10,9 @@ import TodoList from "../todo";
 
 interface BlockSelectorProps
 {
-	updateBlock: Dispatch<SetStateAction<JSX.Element | undefined>>,
+	updateBlock: Dispatch<SetStateAction<JSX.Element>>,
 	resetValue : () => void,
+	userData: UserData,
 }
 
 const BlockSelector: FC<BlockSelectorProps> = (props) =>
@@ -20,6 +23,8 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 		{ id: 3, name: "Notes", content: <Notes  /> }
 	];
 	
+	const utils = trpc.useContext();
+
 	const [selectedBlock, setSelectedBlock] = useState({ content: <>{""}</> });
 	const [query, setQuery] = useState("");
 
@@ -32,6 +37,16 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 					.toLowerCase()
 					.replace(/\s+/g, "")
 					.includes(query.toLowerCase().replace(/\s+/g, "")))
+
+	const updateData = trpc.useMutation(
+		["pages.updateData"],
+		{
+			onSuccess: async() => 
+			{
+				await utils.refetchQueries(["pages.getData"])
+			}
+		}
+	);
 
 	return (
 		<div className="fixed w-72">
@@ -82,7 +97,11 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 											{
 												if(block.content)
 												{
-													props.updateBlock(block.content)
+													if (props.userData.blocks[block.id]) 
+													{
+														props.userData.blocks[block.id].block.type = block.name
+														props.updateBlock(block.content)
+													}
 												}
 											}}
 											onKeyDown={(event: KeyboardEvent<HTMLLIElement>) => 

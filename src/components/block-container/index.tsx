@@ -1,11 +1,14 @@
 import { Disclosure } from "@headlessui/react";
 import { User } from "@prisma/client";
-import { FC, ReactNode, useState } from "react";
+import { useRouter } from "next/router";
+import { FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { UserData } from "../../pages/p/[pid]";
+import { trpc } from "../../utils/trpc";
 import BlockSelector from "../block-selector";
 import Notes from "../note-block";
 import Timer from "../timer";
 import TodoList from "../todo";
+
 interface BlockContainerProps
 {
 	id: number;
@@ -15,46 +18,26 @@ interface BlockContainerProps
 	user: User;
 }
 
-const BlockContainer:FC<BlockContainerProps> = (props) => 
+const BlockContainer: FC<BlockContainerProps> = (props) => 
 {
-	const { userData, id } = props
+	const pid = useRouter().query.pid as string
 
-	const sdf;
+	const { userData, id: blockId } = props
+	const utils = trpc.useContext()
 
-	const parseUserData = () => 
-	{
-		switch(userData.blocks[id]?.block.type) 
+	const updateData = trpc.useMutation(
+		["pages.updateData"],
 		{
-		case "notes":
-			return(
-				<Notes content={userData.blocks[id]?.block.content} userData={userData} id={props.id} user={props.user}/>
-			);
-		case "timer":
-			return(
-				<Timer />
-			);
-		case "todo":
-			return(
-				<TodoList />
-			);
-		case "empty":
-			return initialContent;
-		}
-	}
-		
-	const [content, setContent] = useState(parseUserData())	
+			onSuccess: async () =>
+			{
+				await utils.invalidateQueries(["pages.getData"])
+			}
+		})
 
-	const resetBlockContent = () => 
-	{
-		setContent(initialContent)
-		userData.blocks[id]?.block.type === "none"
-		userData.blocks[id]?.block.content === ""
-
-		
-		
-	}
-
-	const initialContent = (
+	/* This variable is wrapped in a useMemo hook to effectively cache the data unless the 
+	 * variable userData in the dependency array changes
+	*/	
+	const initialContent = useMemo(() => (
 		<>
 			<Disclosure >
 				{({ open }) => (
@@ -63,16 +46,66 @@ const BlockContainer:FC<BlockContainerProps> = (props) =>
 							<h1 className={"text-7xl"}>+</h1>
 						</Disclosure.Button>
 						{open && 
-						<BlockSelector updateBlock={setContent} resetValue={() => setContent(initialContent)} />
+						<BlockSelector updateBlock={setContent} resetValue={() => setContent(initialContent)} userData={userData}/>
 						
 						}
 					</>
 				)}
 			</Disclosure>
 		</>
-	)
+	), [userData])
+
+	const [content, setContent] = useState(initialContent)	
 	
+	/* This function is wrapped in the useCallback hook to effectively cache the function
+	 * unless one of the variables in the dependency array changes
+  */
+	const parseUserData = useCallback(() => 
+	{
+		switch(userData.blocks[blockId]?.block.type) 
+		{
+		case "Notes":
+			setContent(<Notes content={userData.blocks[blockId]?.block.content} userData={userData} id={props.id} user={props.user}/>);
+			break;
+		case "Timer":
+			setContent(<Timer />);
+			break;
+		case "TodoList":
+			setContent(<TodoList />);
+			break;
+		case "empty":
+			setContent(initialContent);
+			break;
+		}
+	}, [props, userData, blockId, initialContent])
+
+	useEffect(() => 
+	{
+		parseUserData()
+	}, [parseUserData])
 	
+	const resetBlockContent = async (pid: string) => 
+	{
+		userData.blocks[blockId].block.type = "empty"
+		userData.blocks[blockId].block.content = ""
+
+		const { schema, layout, blocks } = userData;
+		const input = {
+			pid: pid,
+			data: {
+				schema: schema,
+				layout: layout,
+				blocks: blocks,
+				userPreferences: {
+				
+				}
+			},
+		}
+
+		await updateData.mutateAsync(input)
+		setContent(initialContent)
+		
+	}	
 
 	return(
 		<>
@@ -82,7 +115,8 @@ const BlockContainer:FC<BlockContainerProps> = (props) =>
 				</div>
 				<button 
 					className={"float-right flex"}
-					onClick={() => setContent(initialContent)}>
+					// eslint-disable-next-line @typescript-eslint/no-misused-promises 
+					onClick={() => resetBlockContent(pid)}>
 					x
 				</button>
 			</div>
