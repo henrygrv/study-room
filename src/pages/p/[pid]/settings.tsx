@@ -5,15 +5,27 @@ import Head from "next/head";
 import useGetUser from "../../../hooks/useGetUser";
 import { authOptions } from "../../api/auth/[...nextauth]";
 import { prisma } from "../../../server/db/client";
+import { trpc } from "../../../utils/trpc";
+import { useRouter } from "next/router";
 
+/**
+ * 
+ * NOTE: This route will always redirect to the currently authenticated user's page
+ * even if accessed on a different pid
+ */
 const SettingsPage: NextPage = () => 
 {
+	const pid = useRouter().query.pid as string;
 	const { user } = useGetUser();
-
-	if (!user)
+	
+	const { data: pagePrefsData } = trpc.useQuery(
+		["pages.byId", { pid: pid }]
+	) 
+	if (!user || !pagePrefsData)
 	{
 		return ( <> </> )
 	}
+	const isUserAuthor = user?.pageId === pagePrefsData.id ? true : false
 
 	return(
 		<>
@@ -22,6 +34,10 @@ const SettingsPage: NextPage = () =>
 					{user.nickname ? `${user.nickname}'s room | settings` : `${user.name}'s room | settings`}
 				</title>	
 			</Head>	
+
+			{!isUserAuthor && (
+				<>Go away</>
+			)}
 		</>
 	)
 }
@@ -43,7 +59,6 @@ export async function getServerSideProps(
 		authOptions
 	)
 
-	console.log(context.resolvedUrl)
 
 	if (!session) 
 	{

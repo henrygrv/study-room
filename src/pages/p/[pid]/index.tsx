@@ -1,17 +1,23 @@
-import { ServerResponse, IncomingMessage } from "http";
-import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
+// External Packages
 import { unstable_getServerSession as getServerSession } from "next-auth";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { authOptions } from "../../api/auth/[...nextauth]";
-import * as  data from "./page.json";
+import { SyncLoader } from "react-spinners"
+import Link from "next/link";
 
+// External Types
+import { ServerResponse, IncomingMessage } from "http";
+import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
+
+// Internal imports
+import { authOptions } from "../../api/auth/[...nextauth]";
 import useGetUser from "../../../hooks/useGetUser";
 import RoomLayoutProvider from "../../../components/room-layout-provider";
 import { trpc } from "../../../utils/trpc";
-import Link from "next/link";
-import { Prisma } from "@prisma/client";
+import useGetPageUser from "../../../hooks/useGetPageUser";
+import { AuthorContext } from "../../../context/authorContext";
 
+// Typesafe wrapper around the user data stored in each page
 export interface UserData {
 	schema: string;
 	layout: number;
@@ -23,25 +29,29 @@ export interface UserData {
 			content?: string
 		}
 	}[],
-	
 }
 
 const UserPage: NextPage = () =>
 {
 	const pid = useRouter().query.pid as string;
-	const utils = trpc.useContext()
-	const { user, pageUrl } = useGetUser();
+	const utils = trpc.useContext();
+	const { pageUser, pageUrl } = useGetPageUser(pid);
+	const { user: authedUser } = useGetUser();
 
-	const pageQuery = trpc.useQuery(["pages.byId", { pid: pid }])
+
+	const pageQuery = trpc.useQuery(
+		["pages.byId", { pid: pid }],
+		{
+			onError: () => 
+			{
+				return pageNotFound;
+			}
+		})
 	
-	const { data: pagePrefsData } = trpc.useQuery(
+	const pageDataQuery = trpc.useQuery(
 		["pages.getData", { pid: pid }],
 		{
-			refetchInterval: 4000,
-			onSuccess: () => 
-			{
-				console.log("data")
-			}
+			refetchInterval: 4000
 		}
 	
 	) 
@@ -50,44 +60,37 @@ const UserPage: NextPage = () =>
 		{
 			onSuccess: async() => 
 			{
-				console.log("updared")
 				await utils.invalidateQueries(["pages.getData"]);
 			},
 		}
 	);
 
-	const pdata = async () => 
-	{
-		console.log(data.blocks)
-		await updatePageData.mutateAsync({
-			pid: pid,
-			data: {
-				schema: data.schema,
-				layout: data.layout,
-				blocks: data.blocks,
-				userPreferences: data.userPreferences,
-			}
-		})
-	}
-
-	
-
-	if (!user)
-	{
-		return (<></>)
-	}
-
 	const pageNotFound: JSX.Element = (
 		<>
 			<div className="flex justify-center align-center h-5/6 items-center">
-				<div className=" items-center justify-center">
+				<div className="flex flex-col items-center rows-3 justify-center flex-wrap">
+					<h1 className="text-xl self-center center">:(</h1>
 					<h1 className="text-2xl self-center center">Page Not Found!</h1>
-					<Link href={pageUrl}>Return to your page</Link>
+					<Link 
+						href={pageUrl ? pageUrl : "../../p"}
+						className={"pt-5 self-center center "}>
+						<p className={"transition ease-in-out duration-300 hover:scale-110 transform-gpu cursor-pointer"}>Return to your page</p>
+					</Link>
 				</div>
 			</div>
 		</>
 	);
 
+	const loading: JSX.Element = (
+		<>
+			<div className="flex justify-center align-center h-5/6 items-center">
+				<div className=" items-center justify-center">
+					<SyncLoader color="#1f2937" speedMultiplier={0.75}/>
+				</div>
+			</div>
+		</>
+	)
+	
 	if(pageQuery.error && pageQuery.error.data?.code === "INTERNAL_SERVER_ERROR") 
 	{
 		return pageNotFound; 
@@ -95,13 +98,12 @@ const UserPage: NextPage = () =>
 
 	if (pageQuery.status !== 'success') 
 	{
-		return (
-			<div className="flex justify-center align-center h-5/6 items-center">
-				<div className=" items-center justify-center">
-					<h1 className="text-2xl">Loading...</h1>
-				</div>
-			</div>
-		)
+		return loading;
+	}
+
+	if (!pageUser)
+	{
+		return (<></>)
 	}
 
 	const { data: pageData } = pageQuery;
@@ -110,34 +112,27 @@ const UserPage: NextPage = () =>
 	{
 		return pageNotFound;
 	}
-	const isUserAuthor = user?.pageId === pageData.id ? true : false
+	const isUserAuthor = authedUser?.pageId === pageData.id ? true : false
 
-	// console.log(pagePrefsData?.pageData)
-	const prefData = pagePrefsData
-	
-	if(!prefData) 
+	if(pageDataQuery.isLoading) 
 	{
-		return
+		return loading;
 	}
-
-	// console.log(prefData)
-	// const typesafePrefDataWrapper = {
-	// 	schema: prefData.schema as string,
-	// 	layout: prefData.layout as number,
-	// 	pageData: prefData.pageData
-	// }
+	const prefData = pageDataQuery.data
+	
+	if(!prefData)
+	{
+		return loading;
+	}
 	return(
 		<>
 			<Head>
-				<title>{user.nickname ? `${user.nickname}'s room` : `${user.name}'s room`}</title>
+				<title>{pageUser.nickname ? `${pageUser.nickname}'s room` : `${pageUser.name}'s room`}</title>
 			</Head>
-			<div className=" w-full h-5/6 my-12">
-				{/* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
-				<button onClick={pdata}>
-					gesdfkjsh
-				</button>
-				{updatePageData.status}
-				<RoomLayoutProvider user={user} layout={prefData.layout} userData={prefData}/>
+			<div className=" w-full h-5/6 my-12 ">
+				<AuthorContext.Provider value={isUserAuthor}>
+					<RoomLayoutProvider user={pageUser} layout={prefData.layout} userData={prefData}/>
+				</AuthorContext.Provider>
 			</div>
 		</>
 	)
@@ -159,8 +154,6 @@ export async function getServerSideProps(
 		context.res,
 		authOptions
 	)
-
-	console.log(context.resolvedUrl)
 
 	if (!session) 
 	{

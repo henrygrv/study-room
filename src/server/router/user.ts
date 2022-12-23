@@ -22,14 +22,35 @@ export const userRouter = createProtectedRouter()
 					id = ctx.session.user.id;
 				}
 				const user = await prisma.user.findUnique({
-					where: { id }
+					where: { id },
+				
 				});
 
 				return user;
 
 			}
 		})
-		
+	.query(
+		"byPageId",
+		{
+			// define input shape
+			input: z.object({
+				pid: z.string(),
+			}),
+			async resolve({ ctx, input })
+			{
+				const { pid } = input;
+				
+				// raw query 
+				const user = await prisma.user.findRaw({
+					filter: { pageId: { $eq: pid } }
+				});
+
+				return user;
+
+			}
+		})
+			
 	.mutation(
 		"nick",
 		{

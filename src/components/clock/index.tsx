@@ -1,4 +1,4 @@
-import useDateTime from "../../hooks/useTime";
+import useDateTime from "../../hooks/useDateTime";
 
 const Clock = () =>
 {

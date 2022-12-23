@@ -81,6 +81,7 @@ export const pageRouter = createRouter()
 
 		}
 	)
+
 	.query(
 		"getData",
 		{

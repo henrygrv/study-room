@@ -1,14 +1,14 @@
 import { Disclosure } from "@headlessui/react";
 import { User } from "@prisma/client";
 import { useRouter } from "next/router";
-import { FC, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { UserData } from "../../pages/p/[pid]";
 import { trpc } from "../../utils/trpc";
 import BlockSelector from "../block-selector";
 import Notes from "../note-block";
 import Timer from "../timer";
 import TodoList from "../todo";
-
+import { AuthorContext } from "../../context/authorContext";
 interface BlockContainerProps
 {
 	id: number;
@@ -18,8 +18,11 @@ interface BlockContainerProps
 	user: User;
 }
 
+
 const BlockContainer: FC<BlockContainerProps> = (props) => 
 {
+
+	const isUserAuthor = useContext(AuthorContext)
 	const pid = useRouter().query.pid as string
 
 	const { userData, id: blockId } = props
@@ -33,27 +36,53 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 				await utils.invalidateQueries(["pages.getData"])
 			}
 		})
+		
+		
+	const updateBlockHandler = useCallback(async () =>
+	{
+		const { schema, layout, blocks } = userData;
+		const input = {
+			pid: pid,
+			data: {
+				schema: schema,
+				layout: layout,
+				blocks: blocks,
+				userPreferences: {
+				}
+			},
+		}
+
+		await updateData.mutateAsync(input)
+		parseUserData()
+	}, [userData])
 
 	/* This variable is wrapped in a useMemo hook to effectively cache the data unless the 
 	 * variable userData in the dependency array changes
 	*/	
-	const initialContent = useMemo(() => (
-		<>
-			<Disclosure >
-				{({ open }) => (
-					<>
-						<Disclosure.Button>
-							<h1 className={"text-7xl"}>+</h1>
-						</Disclosure.Button>
-						{open && 
-						<BlockSelector updateBlock={setContent} resetValue={() => setContent(initialContent)} userData={userData}/>
+	const initialContent = useMemo(() => 
+		(
+			<>
+				<Disclosure >
+					{({ open }) => (
+						<>
+							<Disclosure.Button>
+								<h1 className={"text-7xl"}>+</h1>
+							</Disclosure.Button>
+							{open && 
+						<BlockSelector 
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
+							updateBlock={updateBlockHandler} 
+							resetValue={() => setContent(initialContent)} 
+							userData={userData}
+							blockId={blockId}
+						/>
 						
-						}
-					</>
-				)}
-			</Disclosure>
-		</>
-	), [userData])
+							}
+						</>
+					)}
+				</Disclosure>
+			</>
+		), [userData, blockId, updateBlockHandler])
 
 	const [content, setContent] = useState(initialContent)	
 	
@@ -84,10 +113,11 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 		parseUserData()
 	}, [parseUserData])
 	
+
 	const resetBlockContent = async (pid: string) => 
 	{
-		userData.blocks[blockId].block.type = "empty"
-		userData.blocks[blockId].block.content = ""
+		userData.blocks[blockId]!.block.type = "empty"
+		userData.blocks[blockId]!.block.content = ""
 
 		const { schema, layout, blocks } = userData;
 		const input = {
@@ -111,14 +141,18 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 		<>
 			<div className={"flex w-10/12 h-5/6 p-5 mx-auto my-auto border-gray-800 border-4 rounded-lg border-dashed bg-slate-100/40 " + props.className }>
 				<div className={"flex w-full h-full items-center justify-center  "}>
+
 					{content}
 				</div>
-				<button 
-					className={"float-right flex"}
-					// eslint-disable-next-line @typescript-eslint/no-misused-promises 
-					onClick={() => resetBlockContent(pid)}>
+				{isUserAuthor && (
+					<button 
+						className={"float-right flex "}
+						// eslint-disable-next-line @typescript-eslint/no-misused-promises 
+						onClick={() => resetBlockContent(pid)}>
 					x
-				</button>
+					</button>
+
+				)}
 			</div>
 		</>
 	)

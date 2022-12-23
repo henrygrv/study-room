@@ -43,8 +43,6 @@ export async function getServerSideProps(
 		authOptions
 	)
 
-	console.log(context.resolvedUrl)
-
 	if (!session) 
 	{
 		return {

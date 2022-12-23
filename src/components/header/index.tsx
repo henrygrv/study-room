@@ -18,8 +18,6 @@ const classNames = (...classes: any[]) => classes.filter(Boolean).join(' ');
 
 const Header: FC = () =>
 {
-
-
 	const { user, pageUrl }  = useGetUser();
 
 	if (!user) 

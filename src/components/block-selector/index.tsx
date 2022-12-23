@@ -10,9 +10,11 @@ import TodoList from "../todo";
 
 interface BlockSelectorProps
 {
-	updateBlock: Dispatch<SetStateAction<JSX.Element>>,
+	// updateBlock: Dispatch<SetStateAction<JSX.Element>>,
+	updateBlock: () => void,
 	resetValue : () => void,
 	userData: UserData,
+	blockId: number,
 }
 
 const BlockSelector: FC<BlockSelectorProps> = (props) =>
@@ -63,10 +65,17 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 									onChange={(event) => setQuery(event.target.value)}
 									onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => 
 									{
-										console.log("enter")
-										if(event.key === "Enter" && selectedBlock?.content.props.children !== "")
+										const selectedBlockType = selectedBlock.content.type.name;
+										if(event.key === "Enter" && selectedBlockType !== "")
 										{
-											props.updateBlock(selectedBlock.content)
+
+											props.userData.blocks[props.blockId]!.block.type = selectedBlockType;
+											if (selectedBlockType === "Notes")
+											{
+												props.userData.blocks[props.blockId]!.block.content = "Notes go Here!";
+											}
+											
+											props.updateBlock();
 										}
 									}}
 								/>
@@ -97,10 +106,14 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 											{
 												if(block.content)
 												{
-													if (props.userData.blocks[block.id]) 
+													if (props.userData.blocks[props.blockId]) 
 													{
-														props.userData.blocks[block.id].block.type = block.name
-														props.updateBlock(block.content)
+														props.userData.blocks[props.blockId]!.block.type = block.name
+														if (block.name === "Notes")
+														{
+															props.userData.blocks[props.blockId]!.block.content = "Notes go Here!"
+														}
+														props.updateBlock()
 													}
 												}
 											}}
@@ -110,7 +123,7 @@ const BlockSelector: FC<BlockSelectorProps> = (props) =>
 												{
 													if(block.content) 
 													{
-														props.updateBlock(block.content)
+														props.updateBlock()
 													}
 												}
 											}}
