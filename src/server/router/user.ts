@@ -17,10 +17,12 @@ export const userRouter = createProtectedRouter()
 			async resolve({ ctx, input })
 			{
 				let { id } = input;
+
 				if (!id) 
 				{
 					id = ctx.session.user.id;
 				}
+
 				const user = await prisma.user.findUnique({
 					where: { id },
 				
@@ -42,9 +44,11 @@ export const userRouter = createProtectedRouter()
 				const { pid } = input;
 				
 				// raw query 
-				const user = await prisma.user.findRaw({
-					filter: { pageId: { $eq: pid } }
-				});
+				const user = await prisma.user.findUnique({
+					where: {
+						pageId: pid,
+					}
+				})
 
 				return user;
 
@@ -56,18 +60,61 @@ export const userRouter = createProtectedRouter()
 		{
 			//define input shape
 			input: z.object({
-				id: z.string(),
+				id: z.string().optional(),
 				nickname: z.string(),
 			}),
-			async resolve({ input })
+			async resolve({ ctx, input })
 			{
-				const { id, nickname } = input;
+				const { nickname } = input;
+				
+				// Use inputted id or use id from context
+				const id = input.id ? input.id : ctx.session.user.id
 
 				const nick = await prisma.user.update({
 					where: { id },
 					data: {
 						nickname: nickname
 					}
+				});
+			}
+		}
+	)
+	.mutation(
+		"email",
+		{
+			//define input shape
+			input: z.object({
+				id: z.string().optional(),
+				email: z.string().email(),
+			}),
+			async resolve({ ctx, input })
+			{
+				const { email } = input;
+
+				// Use inputted id or use id from context
+				const id = input.id? input.id : ctx.session.user.id
+
+				const emailUpdate = await prisma.user.update({
+					where: { id },
+					data: {
+						email: email
+					}
+				});
+			},
+		}
+	)
+	.mutation(
+		"remove",
+		{
+			input: z.object({
+				id: z.string(),
+			}),
+			async resolve({ input })
+			{
+				const { id } = input;
+
+				const deleteUser = await prisma.user.delete({
+					where: { id },
 				});
 			}
 		}

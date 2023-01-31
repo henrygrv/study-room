@@ -10,8 +10,9 @@ export default function useGetUser()
 	{
 		uid = session.user.id
 	}
+	
 	const userDetails = trpc.useQuery(["users.byId", { id: uid }])
-
+	
 	if (userDetails)
 	{
 		if (userDetails.data) 

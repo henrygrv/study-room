@@ -3,7 +3,10 @@ import { createRouter } from "./context";
 
 import { prisma } from "./../db/client"
 import { TRPCError } from "@trpc/server";
-import { UserData } from "../../pages/p/[pid]";
+import { PageData } from "../../pages/p/[pid]";
+import { Page } from "@prisma/client";
+
+import { defaultPageData } from "../../pages/api/auth/[...nextauth]";
 
 export const pageRouter = createRouter()
 	.mutation("add", {
@@ -72,6 +75,11 @@ export const pageRouter = createRouter()
 				const page = await prisma.page.findUnique({
 					where: {
 						id: pid	
+					},
+					select: {
+						id: true,
+						createdAt: true,
+						updatedAt: true,
 					}
 				})
 
@@ -109,7 +117,7 @@ export const pageRouter = createRouter()
 						schema: (pageData as any).schema,
 						blocks: (pageData as any).blocks as { block: { id: number, type: string, content?: string} }[],
 						userPreferences: (pageData as any)?.pageData
-					} as UserData
+					} as PageData
 				}
 			}
 		}
@@ -126,7 +134,7 @@ export const pageRouter = createRouter()
 						block:z.object({
 							id: z.number(),
 							type: z.string(),
-							content: z.string().optional()
+							content: z.string().or(number()).optional()
 						})
 					})),
 					userPreferences: z.object({
@@ -138,20 +146,37 @@ export const pageRouter = createRouter()
 			async resolve({ input })
 			{
 				const { pid: id, data } = input;
-
-				
 				
 				const updateData = await prisma.page.update({
 					where: { id },
 					data: {
 						pageData: data
 					}
-
-					
-				})
+				});
+				
 				return updateData;
 			}
-
-
 		}
 	)
+	.mutation(
+		"resetPageData",
+		{
+			input: z.object({
+				pid: z.string(),
+			}),
+
+			async resolve({ input })
+			{
+				const { pid } = input;
+
+				const resetData = await prisma.page.update({
+					where: { id: pid },
+					data: {
+						pageData: defaultPageData
+					}
+				});
+
+				return resetData;
+			}
+		})
+	

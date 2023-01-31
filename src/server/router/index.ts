@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { userRouter } from "./user";
 import { pageRouter } from "./pages";
 
+// connect all api routes together
 export const appRouter = createRouter()
 	.transformer(superjson)
 	.merge("users.", userRouter)

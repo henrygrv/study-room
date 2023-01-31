@@ -6,21 +6,21 @@
 			"block": {
 				"id": 0,
 				"type": "Notes",
-				"content": "hello rom the user data"
+				"content": "hello from the user data"
 			}
 		},
 		{
 			"block": {
 				"id": 1,
 				"type": "Notes",
-				"content": "sjdfhksjdhf"
+				"content": "notes go here"
 			}
 		},
 		{
 			"block": {
 				"id": 2,
-				"type": "Notes",
-				"content": "Notes"
+				"type": "Timer",
+				"content": ""
 			}
 		},
 		{

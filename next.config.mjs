@@ -13,5 +13,5 @@ export default defineNextConfig({
   swcMinify: true,
   images: {
     domains: ["lh3.googleusercontent.com"],
-  }
+  },
 });

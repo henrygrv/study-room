@@ -7,8 +7,4 @@ import { createContext } from "../../../server/router/context";
 export default createNextApiHandler({
 	router: appRouter,
 	createContext: createContext,
-	onError({ error, type, path, input, ctx, req }) 
-	{
-		console.error("Error:", error)
-	}
 });

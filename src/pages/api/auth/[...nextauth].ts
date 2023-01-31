@@ -8,36 +8,41 @@ import { env } from "../../../env/server.mjs";
 import { trpc } from "../../../utils/trpc";
 import router from "next/router";
 
-const defaultPageData = JSON.stringify({
-	schema: "study-room-page-schema",
-	layout: 0,
-	blocks: [
+export const defaultPageData = 
 		{
-			block: {
-				id: 0,
-				type: "Notes",
-				content: "hello this is from the user data"
-			}
-		},
-		{
-			block: {
-				id: 1,
-				type: "Timer"
-			}
-		},
-		{
-			block: {
-				id: 2,
-				type: "Notes",
-				content: "Notes"
+			schema: "study-room-page-schema",
+			layout: 0,
+			blocks: [
+				{
+					block: {
+						id: 0,
+						type: "empty",
+					}
+				},
+				{
+					block: {
+						id: 1,
+						type: "empty"
+					}
+				},
+				{
+					block: {
+						id: 2,
+						type: "empty",
+					}
+				},
+				{
+					block: {
+						id: 2,
+						type: "empty",
+					}
+				}
+			],
+			userPreferences: {
+
 			}
 		}
-	],
-	userPreferences: {
 
-	}
-}
-)
 export const authOptions: NextAuthOptions = {
 	// Include user.id on session
 	callbacks: {
@@ -54,6 +59,7 @@ export const authOptions: NextAuthOptions = {
 	events: {
 		async signIn(message)
 		{
+			// On signIN, check if user is new and if so link a page to their User document in DB
 			if (message.isNewUser)
 			{
 				const page = await prisma.page.create({

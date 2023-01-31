@@ -8,6 +8,7 @@ import Link from "next/link";
 // External Types
 import { ServerResponse, IncomingMessage } from "http";
 import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
+import { ReactElement } from "react";
 
 // Internal imports
 import { authOptions } from "../../api/auth/[...nextauth]";
@@ -18,7 +19,7 @@ import useGetPageUser from "../../../hooks/useGetPageUser";
 import { AuthorContext } from "../../../context/authorContext";
 
 // Typesafe wrapper around the user data stored in each page
-export interface UserData {
+export interface PageData {
 	schema: string;
 	layout: number;
 	blocks: {
@@ -26,64 +27,68 @@ export interface UserData {
 		{
 			id: number,
 			type: string, 
-			content?: string
+			content?: string | number
 		}
 	}[],
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	userPreferences: {
+		
+	}
 }
 
-const UserPage: NextPage = () =>
+const UserPage: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>): ReactElement =>
 {
-	const pid = useRouter().query.pid as string;
-	const utils = trpc.useContext();
+	const router = useRouter();
+	const pid = router.query.pid as string;
 	const { pageUser, pageUrl } = useGetPageUser(pid);
+
 	const { user: authedUser } = useGetUser();
 
 
 	const pageQuery = trpc.useQuery(
-		["pages.byId", { pid: pid }],
+		["pages.byId", { pid }],
 		{
 			onError: () => 
 			{
-				return pageNotFound;
-			}
+				console.log(authedUser?.pageId)
+				void router.push({
+					pathname: "../../p/page-not-found",
+					query: { pageUrl: authedUser?.pageId }
+				}, "../../p/page-not-found");
+			},
+			retry: 2,
+			// Retry every 8 seconds
+			retryDelay: 8000,
 		})
 	
 	const pageDataQuery = trpc.useQuery(
-		["pages.getData", { pid: pid }],
+		["pages.getData", { pid }],
 		{
-			refetchInterval: 4000
+			// Refresh data every 2 seconds
+			refetchInterval: 2000
 		}
 	
 	) 
-	const updatePageData = trpc.useMutation(
-		["pages.updateData"],
-		{
-			onSuccess: async() => 
-			{
-				await utils.invalidateQueries(["pages.getData"]);
-			},
-		}
-	);
 
-	const pageNotFound: JSX.Element = (
-		<>
-			<div className="flex justify-center align-center h-5/6 items-center">
-				<div className="flex flex-col items-center rows-3 justify-center flex-wrap">
-					<h1 className="text-xl self-center center">:(</h1>
-					<h1 className="text-2xl self-center center">Page Not Found!</h1>
-					<Link 
-						href={pageUrl ? pageUrl : "../../p"}
-						className={"pt-5 self-center center "}>
-						<p className={"transition ease-in-out duration-300 hover:scale-110 transform-gpu cursor-pointer"}>Return to your page</p>
-					</Link>
-				</div>
-			</div>
-		</>
-	);
+	// const pageNotFound: JSX.Element = (
+	// 	<>
+	// 		<div className="flex h-screen justify-center align-center  items-center">
+	// 			<div className="flex flex-col items-center rows-3 justify-center flex-wrap">
+	// 				<h1 className="text-xl self-center center">:(</h1>
+	// 				<h1 className="text-2xl self-center center">Page Not Found!</h1>
+	// 				<Link 
+	// 					href={pageUrl ? pageUrl : "../../p"}
+	// 					className={"pt-5 self-center center "}>
+	// 					<p className={"transition ease-in-out duration-300 hover:scale-110 transform-gpu cursor-pointer"}>Return to your page</p>
+	// 				</Link>
+	// 			</div>
+	// 		</div>
+	// 	</>
+	// );
 
 	const loading: JSX.Element = (
 		<>
-			<div className="flex justify-center align-center h-5/6 items-center">
+			<div className="flex h-screen justify-center align-center items-center">
 				<div className=" items-center justify-center">
 					<SyncLoader color="#1f2937" speedMultiplier={0.75}/>
 				</div>
@@ -91,12 +96,15 @@ const UserPage: NextPage = () =>
 		</>
 	)
 	
-	if(pageQuery.error && pageQuery.error.data?.code === "INTERNAL_SERVER_ERROR") 
+	if(pageQuery.error) 
 	{
-		return pageNotFound; 
+		void router.push({
+			pathname: "../../p/page-not-found",
+			query: { pageUrl: authedUser?.pageId }
+		}, "../../p/page-not-found")
 	}
 
-	if (pageQuery.status !== 'success') 
+	if (pageQuery.isLoading) 
 	{
 		return loading;
 	}
@@ -110,28 +118,38 @@ const UserPage: NextPage = () =>
 
 	if (!pageData)
 	{
-		return pageNotFound;
-	}
-	const isUserAuthor = authedUser?.pageId === pageData.id ? true : false
+		void router.push({
+			pathname: "../../p/page-not-found",
+			query: { pageUrl: authedUser?.pageId }
+		}, "../../p/page-not-found")
 
-	if(pageDataQuery.isLoading) 
-	{
-		return loading;
+		return (<></>);
 	}
-	const prefData = pageDataQuery.data
+	
+
+	const { data: prefData } = pageDataQuery;
 	
 	if(!prefData)
 	{
-		return loading;
+		void router.push({
+			pathname: "../../p/page-not-found",
+			query: { pageUrl: authedUser?.pageId }
+		}, "../../p/page-not-found")
+		return (<></>)
 	}
+	
+
+	const isUserAuthor = authedUser?.pageId === pageData.id ? true : false;
+
 	return(
 		<>
 			<Head>
 				<title>{pageUser.nickname ? `${pageUser.nickname}'s room` : `${pageUser.name}'s room`}</title>
 			</Head>
-			<div className=" w-full h-5/6 my-12 ">
+			<div>
+				
 				<AuthorContext.Provider value={isUserAuthor}>
-					<RoomLayoutProvider user={pageUser} layout={prefData.layout} userData={prefData}/>
+					<RoomLayoutProvider user={pageUser} layout={prefData.layout} pageData={prefData}/>
 				</AuthorContext.Provider>
 			</div>
 		</>
@@ -163,35 +181,6 @@ export async function getServerSideProps(
 			}
 		}
 	}
-	// if(session) 
-	// {
-		
-	// 	const userId = session.user?.id
-
-	// 	if (userId) 
-	// 	{
-	// 		const user = await prisma.user.findUnique({
-	// 			where: { id: userId }
-	// 		})
-
-	// 		if (user)
-	// 		{
-	// 			if (context.resolvedUrl !== `/p/${user.pageId}`) 
-	// 			{
-	// 				return {
-	// 					redirect: {
-	// 						destination: `/p/${user.pageId}`
-	// 					}
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				return {
-	// 					props: {}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
 	return {
 		props:{
 			

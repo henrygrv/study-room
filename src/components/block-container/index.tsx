@@ -2,30 +2,28 @@ import { Disclosure } from "@headlessui/react";
 import { User } from "@prisma/client";
 import { useRouter } from "next/router";
 import { FC, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { UserData } from "../../pages/p/[pid]";
+import { PageData } from "../../pages/p/[pid]";
 import { trpc } from "../../utils/trpc";
 import BlockSelector from "../block-selector";
 import Notes from "../note-block";
 import Timer from "../timer";
 import TodoList from "../todo";
 import { AuthorContext } from "../../context/authorContext";
+
 interface BlockContainerProps
 {
 	id: number;
-	children?: string | ReactNode;
 	className: string;
-	userData: UserData;
+	pageData: PageData;
 	user: User;
 }
 
-
 const BlockContainer: FC<BlockContainerProps> = (props) => 
 {
-
 	const isUserAuthor = useContext(AuthorContext)
 	const pid = useRouter().query.pid as string
 
-	const { userData, id: blockId } = props
+	const { pageData, id: blockId } = props
 	const utils = trpc.useContext()
 
 	const updateData = trpc.useMutation(
@@ -33,20 +31,22 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 		{
 			onSuccess: async () =>
 			{
-				await utils.invalidateQueries(["pages.getData"])
+				await utils.refetchQueries(["pages.getData"])
 			}
 		})
 		
-		
+	/* This function is wrapped in the useCallback hook to effectively cache the function
+	 * unless one of the variables in the dependency array changes
+  */
 	const updateBlockHandler = useCallback(async () =>
 	{
-		const { schema, layout, blocks } = userData;
+		const { schema, layout, blocks } = pageData;
 		const input = {
-			pid: pid,
+			pid,
 			data: {
-				schema: schema,
-				layout: layout,
-				blocks: blocks,
+				schema,
+				layout,
+				blocks,
 				userPreferences: {
 				}
 			},
@@ -54,36 +54,45 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 
 		await updateData.mutateAsync(input)
 		parseUserData()
-	}, [userData])
+	}, [pageData])
 
 	/* This variable is wrapped in a useMemo hook to effectively cache the data unless the 
-	 * variable userData in the dependency array changes
+	* variable userData in the dependency array changes
 	*/	
 	const initialContent = useMemo(() => 
-		(
-			<>
-				<Disclosure >
-					{({ open }) => (
-						<>
-							<Disclosure.Button>
-								<h1 className={"text-7xl"}>+</h1>
-							</Disclosure.Button>
-							{open && 
+	{
+		if (isUserAuthor) 
+		{
+			return(	
+				<>
+					<Disclosure >
+						{({ open }) => (
+							<>
+								<Disclosure.Button>
+									<h1 className={"text-7xl"}>+</h1>
+								</Disclosure.Button>
+								{open && 
 						<BlockSelector 
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							updateBlock={updateBlockHandler} 
 							resetValue={() => setContent(initialContent)} 
-							userData={userData}
+							pageData={pageData}
 							blockId={blockId}
 						/>
 						
-							}
-						</>
-					)}
-				</Disclosure>
-			</>
-		), [userData, blockId, updateBlockHandler])
-
+								}
+							</>
+						)}
+					</Disclosure>
+				</> 
+			)
+		}
+		else 
+		{
+			return (<></>)
+		}
+	}, [pageData, blockId, updateBlockHandler, isUserAuthor])
+	
 	const [content, setContent] = useState(initialContent)	
 	
 	/* This function is wrapped in the useCallback hook to effectively cache the function
@@ -91,22 +100,27 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
   */
 	const parseUserData = useCallback(() => 
 	{
-		switch(userData.blocks[blockId]?.block.type) 
+		const blockData = pageData.blocks[blockId]!.block
+
+		switch(pageData.blocks[blockId]?.block.type) 
 		{
 		case "Notes":
-			setContent(<Notes content={userData.blocks[blockId]?.block.content} userData={userData} id={props.id} user={props.user}/>);
+			
+			setContent(<Notes blockData={blockData}/>);
+			// setContent(<Notes content={pageData.blocks[blockId]?.block.content} userData={pageData} id={props.id} user={props.user}/>);
 			break;
 		case "Timer":
-			setContent(<Timer />);
+			setContent(<Timer blockData={blockData}/>);
+			// setContent(<Timer pageData={pageData} id={blockId} />);
 			break;
 		case "TodoList":
-			setContent(<TodoList />);
+			setContent(<TodoList blockData={blockData}/>);
 			break;
 		case "empty":
 			setContent(initialContent);
 			break;
 		}
-	}, [props, userData, blockId, initialContent])
+	}, [pageData, blockId, initialContent])
 
 	useEffect(() => 
 	{
@@ -116,10 +130,10 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 
 	const resetBlockContent = async (pid: string) => 
 	{
-		userData.blocks[blockId]!.block.type = "empty"
-		userData.blocks[blockId]!.block.content = ""
+		pageData.blocks[blockId]!.block.type = "empty"
+		pageData.blocks[blockId]!.block.content = ""
 
-		const { schema, layout, blocks } = userData;
+		const { schema, layout, blocks } = pageData;
 		const input = {
 			pid: pid,
 			data: {
@@ -144,7 +158,7 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 
 					{content}
 				</div>
-				{isUserAuthor && (
+				{(isUserAuthor && content !== initialContent) && (
 					<button 
 						className={"float-right flex "}
 						// eslint-disable-next-line @typescript-eslint/no-misused-promises 
