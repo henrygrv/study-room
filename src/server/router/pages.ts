@@ -134,7 +134,8 @@ export const pageRouter = createRouter()
 						block:z.object({
 							id: z.number(),
 							type: z.string(),
-							content: z.string().or(number()).optional()
+							content: z.string().or(number()).optional(),
+							duration: z.number().optional()
 						})
 					})),
 					userPreferences: z.object({

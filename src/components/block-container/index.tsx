@@ -110,7 +110,7 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 			setContent(<Notes blockData={blockData} pageData={pageData}/>);
 			break;
 		case "Timer":
-			setContent(<Timer blockData={blockData}/>);
+			setContent(<Timer blockData={blockData} pageData={pageData}/>);
 			break;
 		case "TodoList":
 			setContent(<TodoList blockData={blockData} pageData={pageData} />);

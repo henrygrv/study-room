@@ -39,13 +39,12 @@ export interface PageData {
 			duration: number
 		}
 	}[],
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	userPreferences: {
 		darkTheme: boolean,
 	}
 }
 
-const UserPage: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>): ReactElement =>
+const UserPage: NextPage = (): ReactElement =>
 {
 	const router = useRouter();
 	const pid = router.query.pid as string;

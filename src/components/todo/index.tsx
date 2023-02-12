@@ -34,8 +34,16 @@ const TodoList: FC<TodoListProps> = (props) =>
 									suppressContentEditableWarning
 									className="inline col-span-6 p-2"
 								>
-									<h1 className="float-left" spellCheck={false}>{item.content}</h1>
-									<button className="float-right" onClick={() => setItems(items.filter(element => element.id !== item.id))}>x</button>
+									<h1 className="float-left" spellCheck={false}>
+										{item.content}
+										{item.id}
+									</h1>
+									<button 
+										contentEditable={false} 
+										className="float-right m-0.5" 
+										onClick={() => setItems(items.filter(element => element.id !== item.id))}>
+											x
+									</button>
 								
 								</h1>
 							
@@ -45,8 +53,11 @@ const TodoList: FC<TodoListProps> = (props) =>
 				</ul>
 				<button 
 					className={`${darkTheme? "bg-slate-200" : "bg-white"} mt-5`}
-			
-					onClick={() => add({ id: (items.length ? items.at(-1).id : -1)+ 1, content: "Todo" })}>Add Item</button>
+					onClick={() => 
+					{
+						add({ id: (items.at(-1)?.id ?? -1) + 1, content: "Todo" })
+					}}>
+						Add Item</button>
 
 			</div>
 

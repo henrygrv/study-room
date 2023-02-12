@@ -3,6 +3,9 @@ import { FC, useContext, useEffect, useState } from "react";
 
 import TimerButton from "../button";
 import { DarkThemeContext } from "../../context/themeContext";
+import { trpc } from "../../utils/trpc";
+import { useRouter } from "next/router";
+import { PageData } from "../../pages/p/[pid]";
 
 const SECOND = 1000;
 const MINUTE = SECOND * 60;
@@ -14,12 +17,13 @@ interface TimerProps {
 		content?: string | number
 		duration: number
 	};
-
+	pageData: PageData;
 }
 
 const Timer: FC<TimerProps> = (props) => 
 {
-	const [timeLeft, setTimeLeft] = useState<number>(0);
+	const pid = useRouter().query.pid as string;
+	const [timeLeft, setTimeLeft] = useState<number>(props.blockData.duration);
 	const [paused, setPaused] = useState<boolean>(true);
 
 	const { darkTheme } = useContext(DarkThemeContext);
@@ -46,6 +50,8 @@ const Timer: FC<TimerProps> = (props) =>
 		return () => clearInterval(interval);
 	}, [timeLeft, paused]);
 
+	const updateTimer = trpc.useMutation(["pages.updateData"])
+
 	return (
 		<>
 			<div className="grid grid-rows-1 grid-cols-2 w-full h-full">
@@ -64,6 +70,13 @@ const Timer: FC<TimerProps> = (props) =>
 											setPaused(false);
 											
 											props.blockData.duration = value;
+											props.pageData.blocks[props.blockData.id]!.block.duration = value
+
+											const input = {
+												pid,
+												data: props.pageData
+											}
+											void updateTimer.mutateAsync(input);
 										}}
 									/>
 								))}
