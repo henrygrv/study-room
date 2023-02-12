@@ -9,6 +9,8 @@ import Notes from "../note-block";
 import Timer from "../timer";
 import TodoList from "../todo";
 import { AuthorContext } from "../../context/authorContext";
+import YouTubeBlockHandler from "../youtube-block";
+import SpotifyBlockHandler from "../spotify-block";
 
 interface BlockContainerProps
 {
@@ -26,6 +28,7 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 	const { pageData, id: blockId } = props
 	const utils = trpc.useContext()
 
+	
 	const updateData = trpc.useMutation(
 		["pages.updateData"],
 		{
@@ -40,15 +43,14 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
   */
 	const updateBlockHandler = useCallback(async () =>
 	{
-		const { schema, layout, blocks } = pageData;
+		const { schema, layout, blocks, userPreferences } = pageData;
 		const input = {
 			pid,
 			data: {
 				schema,
 				layout,
 				blocks,
-				userPreferences: {
-				}
+				userPreferences: userPreferences 
 			},
 		}
 
@@ -105,44 +107,51 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 		switch(pageData.blocks[blockId]?.block.type) 
 		{
 		case "Notes":
-			
-			setContent(<Notes blockData={blockData}/>);
-			// setContent(<Notes content={pageData.blocks[blockId]?.block.content} userData={pageData} id={props.id} user={props.user}/>);
+			setContent(<Notes blockData={blockData} pageData={pageData}/>);
 			break;
 		case "Timer":
 			setContent(<Timer blockData={blockData}/>);
-			// setContent(<Timer pageData={pageData} id={blockId} />);
 			break;
 		case "TodoList":
-			setContent(<TodoList blockData={blockData}/>);
+			setContent(<TodoList blockData={blockData} pageData={pageData} />);
+			break;
+		case "YouTube":
+			setContent(<YouTubeBlockHandler blockData={blockData} pageData={pageData}/>);
+			break;
+		case "Spotify":
+			setContent(<SpotifyBlockHandler blockData={blockData} pageData={pageData}/>);
 			break;
 		case "empty":
 			setContent(initialContent);
 			break;
 		}
 	}, [pageData, blockId, initialContent])
-
+	
 	useEffect(() => 
 	{
 		parseUserData()
 	}, [parseUserData])
 	
-
+	if (!pageData.blocks[blockId]) 
+	{
+		return <></>;
+	}
+	
 	const resetBlockContent = async (pid: string) => 
 	{
-		pageData.blocks[blockId]!.block.type = "empty"
-		pageData.blocks[blockId]!.block.content = ""
+		pageData.blocks[blockId]!.block.type = "empty";
+		pageData.blocks[blockId]!.block.content = "";
+		pageData.blocks[blockId]!.block.duration = 0;
 
-		const { schema, layout, blocks } = pageData;
+
+		const { schema, layout, blocks, userPreferences } = pageData;
 		const input = {
-			pid: pid,
+			pid,
 			data: {
-				schema: schema,
-				layout: layout,
-				blocks: blocks,
-				userPreferences: {
-				
-				}
+				schema,
+				layout,
+				blocks,
+				userPreferences
 			},
 		}
 
@@ -153,7 +162,7 @@ const BlockContainer: FC<BlockContainerProps> = (props) =>
 
 	return(
 		<>
-			<div className={"flex w-10/12 h-5/6 p-5 mx-auto my-auto border-gray-800 border-4 rounded-lg border-dashed bg-slate-100/40 " + props.className }>
+			<div className={"flex w-10/12 h-40 lg:h-5/6 lg:p-5 mx-auto my-auto border-gray-800 border-4 rounded-lg border-dashed bg-slate-100/40 " + props.className }>
 				<div className={"flex w-full h-full items-center justify-center  "}>
 
 					{content}

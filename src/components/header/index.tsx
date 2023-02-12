@@ -1,10 +1,11 @@
-import { FC, Fragment } from "react";
+import { FC, Fragment, useContext } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react"
 import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline';
 import Image from "next/image"
 import Link from "next/link";
 import useGetUser from "../../hooks/useGetUser";
 import Clock from "../clock";
+import { DarkThemeContext } from "../../context/themeContext";
 
 const profileNavigation: { name: string, href: string }[] = 
 [
@@ -19,7 +20,7 @@ const classNames = (...classes: any[]) => classes.filter(Boolean).join(' ');
 const Header: FC = () =>
 {
 	const { user, pageUrl }  = useGetUser();
-
+	const { darkTheme } = useContext(DarkThemeContext)
 	if (!user) 
 	{
 		return ( <></>)
@@ -48,14 +49,14 @@ const Header: FC = () =>
 	return(
 		<Disclosure 
 			as="nav" 
-			className="w-full font-serif rounded-b-2xl border-b-gray-800 border-b-4"
+			className={`w-full font-serif rounded-b-2xl ${darkTheme ? "border-b-slate-200" : "border-b-gray-800"}  border-b-4`}
 		>
 			{({ open }) => (
 				<>
-					<div className="text-3xl font-serif font-medium float-left p-3 pl-4 text-gray-800">
+					<div className={`text-3xl font-serif font-medium float-left p-3 pl-4 ${darkTheme ? "text-gray-300" : "text-gray-800"}`}>
 						{`${greeting()}, ${user.nickname ? user.nickname : user.name}`}
 					</div >
-					<div className="text-3xl font-serif font-medium float-right hidden md:block p-3 pr-4 text-gray-700">
+					<div className={`text-3xl font-serif font-medium float-right hidden md:block p-3 pr-4 ${darkTheme ? "text-gray-300" : "text-gray-700"}`}>
 						<Clock />
 					</div>
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect, FC, ReactElement, useContext } from
 import { PageData } from '../../pages/p/[pid]';
 import { trpc } from '../../utils/trpc';
 import { AuthorContext } from '../../context/authorContext';
+import { useRouter } from 'next/router';
 
 interface EditableElementProps {
 	onChange: (value: string) => void;
@@ -15,11 +16,12 @@ const EditableElement: FC<EditableElementProps> = (props) =>
 	const element = useRef(null);
 	let child = props.children
 
-	const onMouseUp = () => 
+	const onKeyEntry = () => 
 	{
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
 		const value: string = (element.current as any)?.value || (element.current as any)?.innerText;
 		onChange(value);
+		console.log(value);
 	};
 
 	useEffect(() => 
@@ -35,92 +37,83 @@ const EditableElement: FC<EditableElementProps> = (props) =>
 		contentEditable: isUserAuthor,
 		suppressContentEditableWarning: true,
 		ref: element,
-		onKeyUp: onMouseUp
+		onKeyUp: onKeyEntry
 	});
 
 	return child;
 };
 
 interface NoteBlockProps {
-	content?: string | number
-	userData?: PageData;
-	id?: number
-	user?: User
-}
-
-// const Notes: FC<NoteBlockProps> = (props) => 
-// {
-// 	const [value, setValue] = useState<string>("Write Notes here");
-// 	const [modified, setModified] = useState<boolean>(false)
-// 	const updatePageData = trpc.useMutation(["pages.updateData"])
-
-// 	// eslint-disable-next-line @typescript-eslint/require-await
-// 	const  handleChange = async (value: string) => 
-// 	{
-// 		if(value !== props.content) 
-// 		{
-// 			setModified(true)
-// 		}
-// 		else 
-// 		{
-// 			setModified(false)
-// 		}
-// 		// if (props.userData.blocks[props.id]) 
-// 		// {
-// 		// 	props.userData.blocks[props.id].block.content = value
-
-// 		// 	const data = {
-// 		// 		id: props.user.pageId,
-// 		// 		data: props.userData
-// 		// 	}
-// 		// 	// await updatePageData.mutateAsync(data)
-// 		// }
-
-// 	};
-
-
-// 	return(
-// 		<>
-// 			<div className="flex w-full h-full items-center justify-center ">
-// 				<EditableElement
-// 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// 					onChange={handleChange}			
-// 				>
-// 					<div className="w-full h-full p-3 focus:border-none font-serif text-lg overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400  ">
-// 						{props.content ? props.content :"Notes go Here!"}
-// 					</div>
-// 				</EditableElement>
-// 				{modified && (
-// 					<div className="absolute bottom-0 mt-auto ml-auto">
-// 						<button className={""}>
-// 							sdfsdf
-// 						</button>
-// 					</div>
-// 				)}
-// 			</div>
-// 		</>
-// 	)
-// }
-
-interface NoteProps {
+	pageData: PageData;
 	blockData: {
 		id: number,
 		type: string,
-		content?: string | number
-
+		content: string
 	}
 }
 
-const Notes: FC<NoteProps> = (props) => 
+const Notes: FC<NoteBlockProps> = (props) => 
 {
-	return (
+	const pid = useRouter().query.pid as string;
+	const [value, setValue] = useState<string>(props.pageData.blocks[props.blockData.id]!.block.content);
+	
+	const updatePageData = trpc.useMutation(["pages.updateData"])
+
+	const handleChange = (newValue: string) => 
+	{
+		setValue(newValue)
+		// props.pageData.blocks[props.blockData.id]!.block.content = newValue;
+	}
+
+	useEffect(() => 
+	{
+		const update = setInterval(() => 
+		{
+			if (value === props.pageData.blocks[props.blockData.id]!.block.content)
+			{
+				return;
+			}
+
+			props.pageData.blocks[props.blockData.id]!.block.content = value;
+
+			console.log("useeffect fired")
+			const { schema, layout, blocks, userPreferences } = props.pageData;
+
+			const input = {
+				pid,
+				data: {
+					schema,
+					layout,
+					blocks,
+					userPreferences
+				}
+			}
+			void updatePageData.mutateAsync(input)
+		}, 2000);
+
+		return () => 
+		{
+			clearInterval(update);
+		};
+
+		
+	}, [pid, updatePageData, props.blockData.id]);
+
+	return(
 		<>
-			Notes
-			<pre>
-				{JSON.stringify(props.blockData)}
-			</pre>
+			<div className="flex w-full h-full items-center justify-center ">
+				<EditableElement
+					onChange={handleChange}
+				>
+					<div className="w-full h-full p-3 whitespace-pre-wrap focus:border-none font-serif text-lg overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400  " id="notes">
+						{props.blockData.content ? props.blockData.content  :"Notes go Here!"}
+					</div>
+				</EditableElement>
+			</div>
 		</>
 	)
 }
+
+
 export default Notes;
 

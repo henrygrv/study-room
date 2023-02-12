@@ -5,13 +5,14 @@ import Head from "next/head";
 import useGetUser from "../../../hooks/useGetUser";
 import { authOptions, defaultPageData } from "../../api/auth/[...nextauth]";
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useContext, useState } from "react";
 import { trpc } from "../../../utils/trpc";
 import useGetPageUser from "../../../hooks/useGetPageUser";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { DarkThemeContext } from "../../../context/themeContext";
 
-const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) =>
+const Profile: NextPage = () =>
 {
 	const router = useRouter();
 	
@@ -22,6 +23,7 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 
 	const [resetModalOpen, setResetModalOpen] = useState(false);
 	
+	const { darkTheme } = useContext(DarkThemeContext);
 	const nicknameMutation = trpc.useMutation(
 		["users.nick"],
 		{
@@ -80,7 +82,6 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 								
 		const $nickname: HTMLInputElement = (event as any).target.elements.nickname
 		
-		console.log($nickname.value)
 		const input = {
 			nickname: $nickname.value.trim(),
 		}
@@ -115,7 +116,7 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 				</title>	
 			</Head>	
 			<div className="w-full h-screen flex items-center justify-center font-serif">
-				<div className="h-auto p-10 px-24 m-7 bg-white drop-shadow-lg rounded-lg w-5/6 md:w-2/3 lg:w-5/12">
+				<div className={`h-auto p-10 px-24 m-7 ${darkTheme ? "bg-slate-300": "bg-white" } drop-shadow-lg rounded-lg w-5/6 md:w-2/3 lg:w-5/12`}>
 					<div className="flex items-center">
 						<div className="drop-shadow-lg mr-4 border-4 border-gray-800 rounded-full relative">
 							<Image 
@@ -162,7 +163,7 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 								type="text"
 								id="nickname"
 								name="nickname"
-								className="text-gray-500 hover:text-gray-700 focus:text-gray-700 border-2 border-gray-500 hover:border-gray-800 focus:border-gray-800 rounded-lg p-2" 
+								className={`text-gray-500 hover:text-gray-700 focus:text-gray-700 border-2 border-gray-500 hover:border-gray-800 focus:border-gray-800 rounded-lg p-2 ${darkTheme ? "bg-slate-200": "bg-white" }`} 
 								
 								defaultValue={user.nickname ? user.nickname : "Enter your nickname"}
 							/>
@@ -178,7 +179,7 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 								type="text"
 								id="email"
 								name="email"
-								className="text-gray-500 hover:text-gray-700 focus:text-gray-700 border-2 border-gray-500 hover:border-gray-800 focus:border-gray-800 invalid:border-red-700 rounded-lg p-2" 
+								className={`text-gray-500 hover:text-gray-700 focus:text-gray-700 border-2 border-gray-500 hover:border-gray-800 focus:border-gray-800 invalid:border-red-700 rounded-lg p-2 ${darkTheme ? "bg-slate-200": "bg-white" }`} 
 								defaultValue={user.email ? user.email : "Enter your email"}
 							/>
 							{emailMutation.error && (
@@ -189,17 +190,17 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 							<input type="submit" hidden />
 						</form>
 
-						<h2 className="text-xl md:text-3xl font-bold text-gray-800 tracking-wide mt-5">Danger Zone</h2>
+						<h2 className="text-xl md:text-3xl font-bold text-gray-800 tracking-wide mt-5 ">Danger Zone</h2>
 						
 						<h3 className="pt-4 pb-2 mb-1">Sign Out</h3>
 
-						<Link href={"../../api/auth/signout"} className="rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800">Sign Out</Link>
+						<Link href={"../../api/auth/signout"} className={`rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800 ${darkTheme ? "bg-slate-200" : "bg-white"}`}>Sign Out</Link>
 
 						<h3 className="pt-4 pb-2 mb-1">Reset Page</h3>
 
 
 						<button 
-							className="rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800"
+							className={`rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800 ${darkTheme? "bg-slate-200": "bg-white" }`}
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises
 							onClick={()  => 
 							{
@@ -220,7 +221,7 @@ const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSi
 						<h3 className="pt-4 pb-2 mb-1" > Delete Account! </h3>
 
 						<button 
-							className="rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800"
+							className={`rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800 ${darkTheme? "bg-slate-200": "bg-white" }`}
 							onClick={() => deleteUser.mutate({ id: user.id })}
 						>
 							Delete Account

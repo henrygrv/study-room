@@ -39,7 +39,7 @@ export const defaultPageData =
 				}
 			],
 			userPreferences: {
-
+				darkTheme: false,
 			}
 		}
 

@@ -8,7 +8,7 @@ import Link from "next/link";
 // External Types
 import { ServerResponse, IncomingMessage } from "http";
 import { NextApiRequest, NextApiResponse, NextPage, InferGetServerSidePropsType } from "next";
-import { ReactElement } from "react";
+import { ReactElement, useContext } from "react";
 
 // Internal imports
 import { authOptions } from "../../api/auth/[...nextauth]";
@@ -17,6 +17,8 @@ import RoomLayoutProvider from "../../../components/room-layout-provider";
 import { trpc } from "../../../utils/trpc";
 import useGetPageUser from "../../../hooks/useGetPageUser";
 import { AuthorContext } from "../../../context/authorContext";
+import { DarkThemeContext } from "../../../context/themeContext";
+
 
 // Typesafe wrapper around the user data stored in each page
 export interface PageData {
@@ -27,12 +29,19 @@ export interface PageData {
 		{
 			id: number,
 			type: string, 
-			content?: string | number
+		} & {
+			id: number,
+      type: string,
+      content: string,
+    } & {
+			id: number,
+			type: string,
+			duration: number
 		}
 	}[],
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	userPreferences: {
-		
+		darkTheme: boolean,
 	}
 }
 
@@ -50,7 +59,6 @@ const UserPage: NextPage = (props: InferGetServerSidePropsType<typeof getServerS
 		{
 			onError: () => 
 			{
-				console.log(authedUser?.pageId)
 				void router.push({
 					pathname: "../../p/page-not-found",
 					query: { pageUrl: authedUser?.pageId }
@@ -68,29 +76,13 @@ const UserPage: NextPage = (props: InferGetServerSidePropsType<typeof getServerS
 			refetchInterval: 2000
 		}
 	
-	) 
-
-	// const pageNotFound: JSX.Element = (
-	// 	<>
-	// 		<div className="flex h-screen justify-center align-center  items-center">
-	// 			<div className="flex flex-col items-center rows-3 justify-center flex-wrap">
-	// 				<h1 className="text-xl self-center center">:(</h1>
-	// 				<h1 className="text-2xl self-center center">Page Not Found!</h1>
-	// 				<Link 
-	// 					href={pageUrl ? pageUrl : "../../p"}
-	// 					className={"pt-5 self-center center "}>
-	// 					<p className={"transition ease-in-out duration-300 hover:scale-110 transform-gpu cursor-pointer"}>Return to your page</p>
-	// 				</Link>
-	// 			</div>
-	// 		</div>
-	// 	</>
-	// );
+	)
 
 	const loading: JSX.Element = (
 		<>
 			<div className="flex h-screen justify-center align-center items-center">
 				<div className=" items-center justify-center">
-					<SyncLoader color="#1f2937" speedMultiplier={0.75}/>
+					<SyncLoader color={useContext(DarkThemeContext) ?  "#1f2937" : "#c9d6d0"} speedMultiplier={0.75}/>
 				</div>
 			</div>
 		</>

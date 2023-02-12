@@ -1,13 +1,17 @@
 import { NextPage } from "next";
 import Link from "next/link";
+import Head from "next/head";
 import { useRouter } from "next/router";
 
-const PageNotFound: NextPage = () => 
+const PageNotFound = () => 
 {
 	const pageUrl = useRouter().query.pageUrl as string;
 
 	return(
 		<>
+			<Head>
+				<title>Page Not Found!</title>
+			</Head>
 			<div className="flex h-screen justify-center align-center  items-center">
 				<div className="flex flex-col items-center rows-3 justify-center flex-wrap">
 					<h1 className="text-xl self-center center">:(</h1>

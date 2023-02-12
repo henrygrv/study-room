@@ -116,7 +116,7 @@ export const pageRouter = createRouter()
 						layout: (pageData as any).layout,
 						schema: (pageData as any).schema,
 						blocks: (pageData as any).blocks as { block: { id: number, type: string, content?: string} }[],
-						userPreferences: (pageData as any)?.pageData
+						userPreferences: (pageData as any)?.userPreferences,
 					} as PageData
 				}
 			}
@@ -138,7 +138,7 @@ export const pageRouter = createRouter()
 						})
 					})),
 					userPreferences: z.object({
-
+						darkTheme: z.boolean()
 					})
 				})
 			}),
@@ -179,4 +179,25 @@ export const pageRouter = createRouter()
 				return resetData;
 			}
 		})
-	
+	.query(
+		"getUserPreferences",
+		{
+			input: z.object({
+				pid: z.string(),
+			}),
+
+			async resolve({ input })
+			{
+				const { pid } = input;
+
+				const userPreferences = await prisma.page.findUnique({
+					where: { id: pid },
+					select: {
+						pageData: true
+					}
+				})
+
+				return (userPreferences?.pageData as unknown as PageData).userPreferences;
+			}
+		}
+	)
