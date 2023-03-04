@@ -8,7 +8,8 @@ module.exports = {
 		},
 		fontFamily: {
 			"serif": ["Playfair Display"]
-		}
+		},
+		
 
 	},
 	plugins: [
