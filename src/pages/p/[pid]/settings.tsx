@@ -17,12 +17,12 @@ import { DarkThemeContext } from "../../../context/themeContext";
  * NOTE: This route will always redirect to the currently authenticated user's page
  * even if accessed on a different pid
  */
-const SettingsPage: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => 
+const SettingsPage: NextPage = () => 
 {
-	const pid = useRouter().query.pid as string;
+	const router = useRouter();
+	const pid = router.query.pid as string;
 	const { user } = useGetUser();
 	const utils = trpc.useContext()
-
 
 	const { darkTheme, setDarkTheme } = useContext(DarkThemeContext);
 	
@@ -34,7 +34,6 @@ const SettingsPage: NextPage = (props: InferGetServerSidePropsType<typeof getSer
 		["pages.byId", { pid }]
 	);
 
-	
 	const updateData = trpc.useMutation(
 		["pages.updateData"],
 		{
@@ -48,6 +47,7 @@ const SettingsPage: NextPage = (props: InferGetServerSidePropsType<typeof getSer
 	{
 		return ( <> </> )
 	}
+
 	const updateLayoutHandler = (layoutValue: Layout) =>
 	{
 		const { schema, blocks, userPreferences } = pageData;
@@ -113,15 +113,15 @@ const SettingsPage: NextPage = (props: InferGetServerSidePropsType<typeof getSer
 
 										<button
 											className={"relative z-10 inline-flex items-center border  px-4 py-2 text-sm font-medium focus:z-20" + ((pageData.layout === 0) ? `${darkTheme ? "bg-indigo-50 border-indigo-500 text-indigo-600 hover:bg-indigo-200 z-50" : "bg-amber-900 border-amber-500 text-amber-600 hover:bg-amber-100 z-50"}` : " z-20 bg-white border-gray-300 text-gray-500 hover:bg-gray-50")}
-											onClick={() => updateLayoutHandler(0)}
+											onClick={() => updateLayoutHandler(Layout.Base)}
 										> Base Layout </button>
 										<button
 											className={"relative z-10 inline-flex items-center border  px-4 py-2 text-sm font-medium focus:z-20" + ((pageData.layout === 1) ? `${darkTheme ? "bg-indigo-50 border-indigo-500 text-indigo-600 hover:bg-indigo-200 z-50" : "bg-amber-900 border-amber-500 text-amber-600 hover:bg-amber-100 z-50"}` : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50")}
-											onClick={() => updateLayoutHandler(1)}
+											onClick={() => updateLayoutHandler(Layout.SideBySide)}
 										> Side-By-Side </button>
 										<button
 											className={"relative z-10 inline-flex items-center border  px-4 py-2 text-sm font-medium focus:z-20" + ((pageData.layout === 2) ? `${darkTheme ? "bg-indigo-50 border-indigo-500 text-indigo-600 hover:bg-indigo-200 z-50" : "bg-amber-900 border-amber-500 text-amber-600 hover:bg-amber-100 z-50"}` : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50")}
-											onClick={() => updateLayoutHandler(2)}
+											onClick={() => updateLayoutHandler(Layout.LargeOnTop)}
 										> Large-on-Top</button>
 									</nav>
 								</div>
@@ -151,7 +151,6 @@ const SettingsPage: NextPage = (props: InferGetServerSidePropsType<typeof getSer
 					</div>
 				</div>
 			</div>	
-
 		</>
 	)
 }

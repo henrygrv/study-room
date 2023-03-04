@@ -47,7 +47,8 @@ const YouTubeBlockHandler: FC<YouTubeBlockProps> = (props) =>
 
 		const $url = (document.getElementById("link-input") as HTMLInputElement).value;
 		
-		if(!/https:\/\/www\.youtube\.com\/watch\?v=.+|https:\/\/youtu\.be\/tkp-931VLFc/.exec($url)) 
+		if(!/https:\/\/www\.youtube\.com\/watch\?v=\w+|https:\/\/youtu\.be\/\w+/
+			.exec($url)) 
 		{
 			setErrorVisible(true);
 			return;

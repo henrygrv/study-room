@@ -11,25 +11,24 @@ import useGetPageUser from "../../../hooks/useGetPageUser";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { DarkThemeContext } from "../../../context/themeContext";
+import { AuthorContext } from "../../../context/authorContext";
 
-const Profile: NextPage = () =>
+const Profile: NextPage = (props: InferGetServerSidePropsType<typeof getServerSideProps>) =>
 {
 	const router = useRouter();
 	
 	const pid = router.query.pid as string;
 	const { user } = useGetUser();
-	const { pageUser  } = useGetPageUser(pid);
 	const utils = trpc.useContext();
-
-	const [resetModalOpen, setResetModalOpen] = useState(false);
-	
+	const [resetModalOpen, setResetModalOpen] = useState<boolean>(false);
 	const { darkTheme } = useContext(DarkThemeContext);
+
 	const nicknameMutation = trpc.useMutation(
 		["users.nick"],
 		{
 			async onSuccess()
 			{
-				await utils.invalidateQueries(["users.byId"])
+				await utils.refetchQueries(["users.byId"])
 			}
 		}
 	)
@@ -38,7 +37,7 @@ const Profile: NextPage = () =>
 		{
 			async onSuccess()
 			{
-				await utils.invalidateQueries(["users.byId"])
+				await utils.refetchQueries(["users.byId"])
 			}
 		}
 	)			
@@ -61,20 +60,11 @@ const Profile: NextPage = () =>
 			}
 		}
 	)
-	if (!user || !pageUser)
-	{
-		return( <> </> )
-	}
 
-	const checkUser = () =>
+	if (!user)
 	{
-		if( user.id !== pageUser.id) 
-		{
-			void router.push(`../${user.pageId}/profile`)
-		}
+		return ( <> </> )
 	}
-
-	checkUser()
 
 	const handleNicknameEdit = async (event: FormEvent<HTMLFormElement>) => 
 	{
@@ -96,16 +86,15 @@ const Profile: NextPage = () =>
 		const $email: HTMLInputElement = (event as any).target.elements.email
 		
 		const input = {
-			email: $email.value,
+			email: $email.value.trim(),
 		}
 		try				
 		{
 			await emailMutation.mutateAsync(input)
 		}
 		catch 
-		{
-			// 
-		}
+		{/**/}
+
 	}
 	
 	return(
@@ -126,34 +115,26 @@ const Profile: NextPage = () =>
 								height={100}
 								alt={"Profile Picture"} 
 							/>
-
 						</div>
 						<div>
-							<div className="flex items-center">
-								<h1 className="text-base md:text-2xl lg:text-4xl font-bold text-gray-800 mr-3">
-									{user.name}
-								
-								</h1>
+							<div className="flex items-center" >
+								<h1 className="text-base md:text-2xl lg:text-4xl font-bold text-gray-800 mr-3">{user.name}</h1>
 								<h2 className="text-gray-600 hidden md:block">
 									{user.nickname && (
 										"(" + user.nickname + ")"
 									)}
 								</h2>
 							</div>
-
 							<p className="text-gray-600 text-sm">
 								{user.email && (
 									user.email
 								)}
 							</p>
-
 						</div>
-
 					</div>
 					<div className={"border-t-2 border-neutral-300 my-5"}/>
 					<div className="">
 						<span className="text-xl md:text-3xl font-bold text-gray-800 tracking-wide">Your Profile</span>
-
 						<h3 className="pt-4 pb-2">Nickname</h3>
 						<form
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises 
@@ -186,18 +167,13 @@ const Profile: NextPage = () =>
 								
 								<p className="text-red-700 text-xs inline tracking-wide m-3">Invalid Email!</p>
 							)}
-		
 							<input type="submit" hidden />
 						</form>
 
 						<h2 className="text-xl md:text-3xl font-bold text-gray-800 tracking-wide mt-5 ">Danger Zone</h2>
-						
 						<h3 className="pt-4 pb-2 mb-1">Sign Out</h3>
-
 						<Link href={"../../api/auth/signout"} className={`rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800 ${darkTheme ? "bg-slate-200" : "bg-white"}`}>Sign Out</Link>
-
 						<h3 className="pt-4 pb-2 mb-1">Reset Page</h3>
-
 
 						<button 
 							className={`rounded-lg p-2 text-gray-500 hover:text-red-700 border-2 border-gray-500 hover:border-gray-800 ${darkTheme? "bg-slate-200": "bg-white" }`}
@@ -265,42 +241,34 @@ export async function getServerSideProps(
 			}
 		}
 	}
-	else
+	if(session) 
 	{
-		return {
-			props: {
+		
+		const userId = session.user?.id
 
+		if (userId) 
+		{
+			const user = await prisma.user.findUnique({
+				where: { id: userId }
+			})
+
+			if (user)
+			{
+				if (context.resolvedUrl !== `/p/${user.pageId}/profile`) 
+				{
+					return {
+						redirect: {
+							destination: `/p/${user.pageId}/profile`
+						}
+					}
+				}
+				else
+				{
+					return {
+						props: {}
+					}
+				}
 			}
 		}
 	}
-	// if(session) 
-	// {
-		
-	// 	const userId = session.user?.id
-
-	// 	if (userId) 
-	// 	{
-	// 		const user = await prisma.user.findUnique({
-	// 			where: { id: userId }
-	// 		})
-
-	// 		if (user)
-	// 		{
-	// 			if (context.resolvedUrl !== `/p/${user.pageId}/profile`) 
-	// 			{
-	// 				return {
-	// 					redirect: {
-	// 						destination: `/p/${user.pageId}/profile`
-	// 					}
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				return {
-	// 					props: {}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 }

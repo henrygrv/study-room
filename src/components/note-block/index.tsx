@@ -1,4 +1,3 @@
-import { User } from '@prisma/client';
 import React, { useRef, useState, useEffect, FC, ReactElement, useContext } from 'react';
 import { PageData } from '../../pages/p/[pid]';
 import { trpc } from '../../utils/trpc';
@@ -21,7 +20,6 @@ const EditableElement: FC<EditableElementProps> = (props) =>
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
 		const value: string = (element.current as any)?.value || (element.current as any)?.innerText;
 		onChange(value);
-		console.log(value);
 	};
 
 	useEffect(() => 
@@ -69,14 +67,10 @@ const Notes: FC<NoteBlockProps> = (props) =>
 	{
 		const update = setInterval(() => 
 		{
-			if (value === props.pageData.blocks[props.blockData.id]!.block.content)
-			{
-				return;
-			}
+			if (value === props.pageData.blocks[props.blockData.id]!.block.content) return;
 
 			props.pageData.blocks[props.blockData.id]!.block.content = value;
 
-			console.log("useeffect fired")
 			const { schema, layout, blocks, userPreferences } = props.pageData;
 
 			const input = {

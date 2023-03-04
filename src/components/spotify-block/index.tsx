@@ -11,18 +11,14 @@ interface SpotifyBlockProps
 		id: number,
 		type: string,
 		content?: string | number
-
 	}
 }
 
 const SpotifyBlockHandler: FC<SpotifyBlockProps> = (props) => 
 {
 	const { darkTheme } = useContext(DarkThemeContext);
-
 	const utils = trpc.useContext();
-
 	const pid = useRouter().query.pid as string;
-
 	const [errorVisible, setErrorVisible] = useState<boolean>(false);
 
 	const updateData = trpc.useMutation(
@@ -37,7 +33,7 @@ const SpotifyBlockHandler: FC<SpotifyBlockProps> = (props) =>
 	
 	if(props.blockData.content && typeof(props.blockData.content) === "string") 
 	{
-		return <><SpotifyEmbed src={props.blockData.content}/></>
+		return <SpotifyEmbed src={props.blockData.content}/>;
 	}
 
 	const handleLinkSubmission = (e: FormEvent<HTMLFormElement>) => 
@@ -46,7 +42,11 @@ const SpotifyBlockHandler: FC<SpotifyBlockProps> = (props) =>
 
 		const $url = (document.getElementById("link-input") as HTMLInputElement).value;
 		
-		if(!/https:\/\/open\.spotify\.com\/(?:track|album|playlist)\/.+/.exec($url)) 
+		if(!(new RegExp(''
+			+ /(?:https:\/\/open\.spotify\.com\/)/.source
+			+ /(?:track|artist|album|playlist)\/\w{22}/.source
+			+ /(?:\?si=\w+)?/.source // optional si parameter
+		).exec($url)))
 		{
 			setErrorVisible(true);
 			return;
@@ -56,29 +56,21 @@ const SpotifyBlockHandler: FC<SpotifyBlockProps> = (props) =>
 
 		props.pageData.blocks[props.blockData.id]!.block.content = $url;
 		props.blockData.content = $url;
-		
-		const { schema, layout, blocks, userPreferences } = props.pageData;
 
 		const input = {
 			pid,
-			data: {
-				schema,
-				layout,
-				blocks,
-				userPreferences 
-			},
+			data: props.pageData
 		}
 
 		void updateData.mutateAsync(input)
-
 	}
+
 	return(
 		<>
 			<div className="w-full h-full p-4 px-30 align-center items-center justify-center flex flex-row font-serif">
-
-				<div className={`${darkTheme ? "bg-slate-200" : "bg-white"} p-2 rounded-lg drop-shadow-lg `} >
+				<div className={`${darkTheme ? "bg-slate-200" : "bg-white"} p-2 rounded-lg drop-shadow-lg`} >
 					<form 
-						id="youtube-link" 
+						id="spotify-link" 
 						onKeyDown={
 							(e) => 
 							{
@@ -86,28 +78,22 @@ const SpotifyBlockHandler: FC<SpotifyBlockProps> = (props) =>
 								{
 									e.preventDefault();
 									handleLinkSubmission(e);
-
 								}
 							}}
 						onSubmit={handleLinkSubmission}
 					>
-
 						<input 
 							id="link-input" 
 							type="text"
 							defaultValue={"Please enter a Spotify Link"} 
 							onClick={(e) => (e.target as HTMLInputElement).select()}
 							onFocus={(e) => (e.target as HTMLInputElement).select()}
-							className="text-gray-500 focus:text-gray-800 p-2 bg-inherit mr-2" />
-
+							className="text-gray-500 focus:text-gray-800 p-2 bg-inherit mr-2 " />
 						<input
 							type="submit"
-							className="bg-slate-100 p-2 rounded-lg drop-shadow-sm hover:drop-shadow-md ">
-
-						</input>
+							className="bg-slate-100 p-2 rounded-lg drop-shadow-sm hover:drop-shadow-md "/>
 					</form>
 				</div>
-
 				{errorVisible && (
 					<h1 className="text-lg mt-48 absolute text-gray-800" >
 						Invalid Spotify Url!

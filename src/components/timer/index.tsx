@@ -25,8 +25,9 @@ const Timer: FC<TimerProps> = (props) =>
 	const pid = useRouter().query.pid as string;
 	const [timeLeft, setTimeLeft] = useState<number>(props.blockData.duration);
 	const [paused, setPaused] = useState<boolean>(true);
-
+	
 	const { darkTheme } = useContext(DarkThemeContext);
+	const updateTimer = trpc.useMutation(["pages.updateData"])
 	
 	const times = [
 		{ time: 60*MINUTE, string: "60m" }, 
@@ -43,14 +44,13 @@ const Timer: FC<TimerProps> = (props) =>
 		{
 			if (paused === false && timeLeft > 0)
 			{
-				setTimeLeft(timeLeft - 1000);
+				setTimeLeft(timeLeft - SECOND);
 			}
 		},1000);
 
 		return () => clearInterval(interval);
 	}, [timeLeft, paused]);
 
-	const updateTimer = trpc.useMutation(["pages.updateData"])
 
 	return (
 		<>
@@ -90,7 +90,7 @@ const Timer: FC<TimerProps> = (props) =>
 							<div className="grid grid-rows-3 h-full">
 								<div className="  md:text-3xl  lg:text-4xl  xl:text-5xl 2xl:text-7xl font-serif row-span-2 flex items-center">
 
-									{new Date(timeLeft).toISOString().slice(11, 19)}
+									{new Date(timeLeft).toISOString().slice(14, 19)}
 								</div>
 								<div className="flex justify-center items-center">
 									<button className={"bg-slate-100 px-4 py-3 drop-shadow-lg rounded-lg border border-gray-800 opacity-75 hover:opacity-90"} onClick={() => paused ? setPaused(false) : setPaused(true)} >

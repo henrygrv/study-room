@@ -9,7 +9,6 @@ interface  TodoListProps {
 		id: number,
 		type: string,
 		content?: string | number
-
 	}
 }
 
@@ -20,47 +19,37 @@ const TodoList: FC<TodoListProps> = (props) =>
 	const { darkTheme } = useContext(DarkThemeContext)
 	const isUserAuthor = useContext(AuthorContext)
 
-	const add = (item: { id: number, content: string}) => setItems([...items, item]);
+	const add = (item: { id: number, content: string}) => items.length >= 7 ? setItems(items) : setItems([...items, item]);
+
 	return(
 		<>
 			<div className={`mx-32 my-10 px-40 flex flex-col w-full h-max lg:h-full rounded-xl ${darkTheme ? "bg-slate-200" : "bg-white"} border-2 border-gray-800 drop-shadow-md items-center justify-center`}>
-				<ul className="w-full opacity-100">
+				<ul className="w-full opacity-100 border-black">
 					{items.map(item => (
 						<li key={item.id}>
-							<div className={`${darkTheme ? "bg-slate-200" : "bg-white"} border rounded-lg grid grid-cols-7 my-1`}>
+							<div className={`${darkTheme ? "bg-gray-200 border-black" : "bg-white"} border rounded-lg grid grid-cols-7 my-1 drop-shadow-md`}>
 								<input type="checkbox" className="mr-3 inline m-2" />
 								<h1 
-									contentEditable={isUserAuthor}
+									contentEditable={isUserAuthor} 
 									suppressContentEditableWarning
-									className="inline col-span-6 p-2"
-								>
-									<h1 className="float-left" spellCheck={false}>
-										{item.content}
-										{item.id}
-									</h1>
-									<button 
-										contentEditable={false} 
-										className="float-right m-0.5" 
-										onClick={() => setItems(items.filter(element => element.id !== item.id))}>
+									className="col-span-5 w-full p-2" 
+									spellCheck={false}>{item.content}</h1>
+								<button 
+									contentEditable={false} 
+									className="m-0.5" 
+									onClick={() => setItems(items.filter(element => element.id !== item.id))}>
 											x
-									</button>
-								
-								</h1>
-							
+								</button>
 							</div>
 						</li>
 					))}
 				</ul>
 				<button 
-					className={`${darkTheme? "bg-slate-200" : "bg-white"} mt-5`}
-					onClick={() => 
-					{
-						add({ id: (items.at(-1)?.id ?? -1) + 1, content: "Todo" })
-					}}>
-						Add Item</button>
-
+					className={`${darkTheme? "bg-gray-200 border-black drop-shadow-md p-2 rounded-lg" : "bg-white"} mt-5 `}
+					onClick={() => add({ id: items.length , content: "Todo" })}>
+						Add Item
+				</button>
 			</div>
-
 		</>
 	)
 }

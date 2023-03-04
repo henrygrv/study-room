@@ -52,7 +52,6 @@ const UserPage: NextPage = (): ReactElement =>
 
 	const { user: authedUser } = useGetUser();
 
-
 	const pageQuery = trpc.useQuery(
 		["pages.byId", { pid }],
 		{

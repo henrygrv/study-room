@@ -14,11 +14,12 @@ const SiteLayoutWrapper: FC<SiteLayoutWrapperProps> = (
 	props
 ) => 
 {
-	const pid = useRouter().query.pid as string;
+	const router = useRouter();
+	const pid = router.query.pid as string;
 	const { data: userPreferences } = trpc.useQuery(
 		["pages.getUserPreferences", { pid }]
 	)
-	
+
 	const [darkTheme, setDarkTheme] = useState(userPreferences?.darkTheme);
 
 	useEffect(() => 
@@ -28,19 +29,13 @@ const SiteLayoutWrapper: FC<SiteLayoutWrapperProps> = (
 	}, [userPreferences?.darkTheme])
 	
 	if (!userPreferences) 
-
 	{
-		return(
-			<>
-
-			</>
-		)
+		return <></>
 	}
 	
 
 	return(
 		<>
-
 			<DarkThemeContext.Provider value={{ darkTheme: ( darkTheme as boolean), setDarkTheme }} >
 				<div className={`w-full h-full lg:min-h-screen bg-gradient-to-tr ${darkTheme ? "from-gray-800 via-slate-700 to-zinc-600" : "from-lime-100 via-yellow-100 to-lime-100"}  flex flex-col scrollbar-thin scrollbar-thumb-gray-400 overflow-hidden`}>
 					<Header />
