@@ -12,7 +12,7 @@ Front-End:
 
 Back-End:
 
-- Next.JS
+21- Next.JS 
 - tRPC
 - Prisma
 - MongoDB
