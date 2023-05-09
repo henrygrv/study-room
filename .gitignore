@@ -23,7 +23,7 @@ npm-debug.log*
 
 # typescript
 *.tsbuildinfo
-
+lazygit.tar.gz
 .vscode
-
+lazygit
 package-lock.json

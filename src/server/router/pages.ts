@@ -14,12 +14,10 @@ export const pageRouter = createRouter()
 		input: z.object({
 			body: z.string(),
 		}),
-		
-		async resolve( { ctx })
-		{
 
-			if (!ctx.session?.user) 
-			{
+		async resolve({ ctx }) {
+
+			if (!ctx.session?.user) {
 				return
 			}
 
@@ -34,32 +32,32 @@ export const pageRouter = createRouter()
 			})
 
 			return page;
-	
+
 		}
 	})
 
-// .query(
-// 	"currentUser", 
-// 	{
+	// .query(
+	// 	"currentUser", 
+	// 	{
 
-// 		async resolve ( input )
-// 		{
-// 			const { ctx } = input;
-				
-// 			if (!ctx.session?.user)
-// 			{
-// 				return
-// 			}
+	// 		async resolve ( input )
+	// 		{
+	// 			const { ctx } = input;
 
-// 			// if (!page)
-// 			// {
-// 			// 	throw new TRPCError({
-// 			// 		code: "NOT_FOUND",
-// 			// 		"message": `No page with id`,
-// 			// 	})
-// 			// }
-// 		}
-// 	})
+	// 			if (!ctx.session?.user)
+	// 			{
+	// 				return
+	// 			}
+
+	// 			// if (!page)
+	// 			// {
+	// 			// 	throw new TRPCError({
+	// 			// 		code: "NOT_FOUND",
+	// 			// 		"message": `No page with id`,
+	// 			// 	})
+	// 			// }
+	// 		}
+	// 	})
 
 	.query(
 		"byId",
@@ -68,13 +66,12 @@ export const pageRouter = createRouter()
 				pid: z.string().optional()
 			}),
 
-			async resolve ({ input })
-			{
+			async resolve({ input }) {
 				const { pid } = input
 
 				const page = await prisma.page.findUnique({
 					where: {
-						id: pid	
+						id: pid
 					},
 					select: {
 						id: true,
@@ -97,8 +94,7 @@ export const pageRouter = createRouter()
 				pid: z.string(),
 			}),
 
-			async resolve({ input })
-			{
+			async resolve({ input }) {
 				const { pid: id } = input;
 
 				const pagePrefs = await prisma.page.findUnique({
@@ -110,55 +106,53 @@ export const pageRouter = createRouter()
 
 				const pageData = pagePrefs?.pageData
 
-				if (pageData) 
-				{
-					return {
+				if (pageData) {
+					return ({
 						layout: (pageData as any).layout,
 						schema: (pageData as any).schema,
-						blocks: (pageData as any).blocks as { block: { id: number, type: string, content?: string} }[],
+						blocks: (pageData as any).blocks as { block: { id: number, type: string, content?: string } }[],
 						userPreferences: (pageData as any)?.userPreferences,
-					} as PageData
+					} satisfies PageData );
 				}
 			}
 		}
 	)
 	.mutation(
-		"updateData",
-		{
-			input: z.object({
-				pid: z.string(),
-				data: z.object({
-					schema: z.string(),
-					layout: z.number(),
-					blocks: z.array(z.object({
-						block:z.object({
-							id: z.number(),
-							type: z.string(),
-							content: z.string().or(number()).optional(),
-							duration: z.number().optional()
-						})
-					})),
-					userPreferences: z.object({
-						darkTheme: z.boolean()
-					})
-				})
-			}),
+						"updateData",
+						{
+							input: z.object({
+								pid: z.string(),
+								data: z.object({
+									schema: z.string(),
+									layout: z.number(),
+									blocks: z.array(z.object({
+										block: z.object({
+											id: z.number(),
+											type: z.string(),
+											content: z.string().or(number()).optional(),
+											duration: z.number().optional()
+										})
+									})),
+									userPreferences: z.object({
+										darkTheme: z.boolean()
+									})
+								})
+							}),
 
-			async resolve({ input })
-			{
-				const { pid: id, data } = input;
-				
-				const updateData = await prisma.page.update({
-					where: { id },
-					data: {
-						pageData: data
-					}
-				});
-				
-				return updateData;
-			}
-		}
-	)
+							async resolve({ input }) {
+								const { pid: id, data } = input;
+
+								const updateData = await prisma.page.update({
+									where: { id },
+									data: {
+										pageData: data
+									}
+								});
+
+								return updateData;
+							}
+						}
+					)
 	.mutation(
 		"resetPageData",
 		{
@@ -166,8 +160,7 @@ export const pageRouter = createRouter()
 				pid: z.string(),
 			}),
 
-			async resolve({ input })
-			{
+			async resolve({ input }) {
 				const { pid } = input;
 
 				const resetData = await prisma.page.update({
@@ -187,8 +180,7 @@ export const pageRouter = createRouter()
 				pid: z.string(),
 			}),
 
-			async resolve({ input })
-			{
+			async resolve({ input }) {
 				const { pid } = input;
 
 				const userPreferences = await prisma.page.findUnique({
@@ -198,7 +190,7 @@ export const pageRouter = createRouter()
 					}
 				})
 
-				return (userPreferences?.pageData as unknown as PageData).userPreferences;
+				return (userPreferences?.pageData satisfies PageData).userPreferences;
 			}
 		}
 	)
